@@ -1,0 +1,26 @@
+[tool.isort]
+profile = "black"
+
+[tool.poetry]
+name = "cost-my-chemo-bot"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "cost_my_chemo_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+gspread-asyncio = "^1.7.1"
+aiogram = "^2.23.1"
+pydantic = "^1.10.2"
+python-dotenv = "^0.21.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
