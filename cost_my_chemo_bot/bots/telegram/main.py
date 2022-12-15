@@ -3,7 +3,7 @@ import logging
 from aiogram import executor
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-from cost_my_chemo_bot.bots.telegram.dispatcher import dp, bot
+from cost_my_chemo_bot.bots.telegram.dispatcher import bot, dp
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS, BotMode
 from cost_my_chemo_bot.db import DB
 

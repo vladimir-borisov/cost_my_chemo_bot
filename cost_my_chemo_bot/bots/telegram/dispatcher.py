@@ -1,6 +1,7 @@
 import decimal
 import logging
 import math
+from typing import Iterable
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
@@ -8,15 +9,14 @@ from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ParseMode
 from aiogram.dispatcher.webhook import SendMessage
+from aiogram.types import ParseMode
 from pydantic import BaseModel
 
-
 from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
+from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB
-from cost_my_chemo_bot.bots.telegram.send import send_message
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ async def send_height_message(
     if initial:
         text += (
             f"Здравствуйте, {message.from_user.full_name}!\n"
-            "Я помогу рассчитать стоимость курса лечения"
+            "Я помогу рассчитать стоимость курса лечения\n"
         )
     text += "Введите ваш рост"
     return await send_message(
@@ -182,7 +182,9 @@ async def send_weight_message(message: types.Message) -> types.Message | SendMes
 
 
 @dp.message_handler(lambda message: message.text.isdigit(), state=Form.height)
-async def process_height(message: types.Message, state: FSMContext) -> types.Message | SendMessage:
+async def process_height(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(height=int(message.text))
     await state.set_state(Form.weight)
     return await send_weight_message(message=message)
@@ -198,7 +200,9 @@ async def send_category_message(message: types.Message) -> types.Message:
 
 
 @dp.message_handler(lambda message: message.text.isdigit(), state=Form.weight)
-async def process_weight(message: types.Message, state: FSMContext) -> types.Message | SendMessage:
+async def process_weight(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(weight=int(message.text))
     await state.set_state(Form.category)
     return await send_category_message(message=message)
@@ -221,7 +225,9 @@ async def send_subcategory_message(
 @dp.message_handler(
     lambda message: message.text in database.categories, state=Form.category
 )
-async def process_category(message: types.Message, state: FSMContext) -> types.Message | SendMessage:
+async def process_category(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(category=message.text)
     await state.set_state(Form.subcategory)
     return await send_subcategory_message(message=message, state=state)
@@ -266,19 +272,27 @@ async def calculate_course_price(course_name: str, bsa: float) -> decimal.Decima
     )
 
 
-async def send_lead_message(message: types.Message) -> types.Message | SendMessage:
+async def send_lead_message(
+    message: types.Message, add_text: str | None = None
+) -> types.Message | SendMessage:
+    if add_text is None:
+        add_text = ""
+
     return await send_message(
         bot,
         chat_id=message.chat.id,
-        text="Введите номер телефона для связи",
+        text=md.text(add_text, md.text("Введите номер телефона для связи"), sep="\n"),
         reply_markup=get_keyboard_markup(
             buttons=[types.KeyboardButton(text="Share", request_contact=True)]
         ),
+        parse_mode=ParseMode.MARKDOWN,
     )
 
 
 @dp.message_handler(course_filter, state=Form.course)
-async def process_course(message: types.Message, state: FSMContext) -> types.Message:
+async def process_course(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(course=message.text)
     state_data = await parse_state(state=state)
     course_price = await calculate_course_price(
@@ -286,23 +300,17 @@ async def process_course(message: types.Message, state: FSMContext) -> types.Mes
         bsa=state_data.bsa,
     )
 
-    await send_message(
-        bot,
-        chat_id=message.chat.id,
-        text=md.text(
-            md.text("Рост:", md.bold(state_data.height)),
-            md.text("Вес:", md.code(state_data.weight)),
-            md.text("Категория:", md.italic(state_data.category)),
-            md.text("Подкатегория:", md.italic(state_data.subcategory)),
-            md.text("Курс:", state_data.course),
-            md.text("Цена:", f"{course_price:.2f}".replace(".", ",")),
-            sep="\n",
-        ),
-        reply_markup=get_keyboard_markup(),
-        parse_mode=ParseMode.MARKDOWN,
+    course_text = md.text(
+        md.text("Рост:", md.bold(state_data.height)),
+        md.text("Вес:", md.code(state_data.weight)),
+        md.text("Категория:", md.italic(state_data.category)),
+        md.text("Подкатегория:", md.italic(state_data.subcategory)),
+        md.text("Курс:", state_data.course),
+        md.text("Цена:", f"{course_price:.2f}".replace(".", ",")),
+        sep="\n",
     )
     await state.set_state(Form.lead)
-    return await send_lead_message(message=message)
+    return await send_lead_message(message=message, add_text=course_text)
 
 
 @dp.message_handler(state=Form.lead, content_types=types.ContentType.CONTACT)
@@ -316,7 +324,9 @@ async def process_lead(message: types.Message, state: FSMContext):
     lambda message: message.text not in database.categories,
     state=Form.category,
 )
-async def process_category_invalid(message: types.Message) -> types.Message | SendMessage:
+async def process_category_invalid(
+    message: types.Message,
+) -> types.Message | SendMessage:
     return await send_message(
         bot,
         chat_id=message.chat.id,

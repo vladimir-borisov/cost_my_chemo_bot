@@ -1,6 +1,6 @@
-from aiogram import types
+from aiogram import Bot, types
 from aiogram.dispatcher.webhook import SendMessage
-from aiogram import Bot
+
 from cost_my_chemo_bot.config import SETTINGS, BotMode
 
 

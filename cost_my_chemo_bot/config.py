@@ -1,6 +1,7 @@
-from pydantic import BaseSettings, Field, FilePath, HttpUrl
-import logging
 import enum
+import logging
+
+from pydantic import BaseSettings, Field, FilePath, HttpUrl
 
 
 class BotMode(enum.Enum):
@@ -28,11 +29,11 @@ class WebhookSettings(BaseSettings):
     # webserver settings
     WEBAPP_HOST: str = "0.0.0.0"  # or ip
     WEBAPP_PORT: int = 8080
-    
+
     @property
     def webhook_url(self) -> str:
         return f"{self.WEBHOOK_HOST}{self.WEBHOOK_PATH}"
-    
+
     class Config:
         env_file = ".env"
 
