@@ -7,7 +7,7 @@ import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
+from aiogram.dispatcher.filters import Command, Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.webhook import SendMessage
 from aiogram.types import ParseMode
@@ -55,20 +55,25 @@ async def parse_state(state: FSMContext) -> StateData:
     return StateData(**data)
 
 
-async def course_filter(message: types.Message) -> bool:
-    state = dp.current_state(chat=message.chat.id, user=message.from_user.id)
+async def course_filter(callback: types.CallbackQuery) -> bool:
+    print("hello")
+    message = callback.message
+    state = dp.current_state(user=callback.from_user.id, chat=message.chat.id)
     state_data = await parse_state(state=state)
     filtered_courses = await database.find_courses(
         category=state_data.category,
         subcategory=state_data.subcategory,
     )
-    return message.text in [course["название курса"] for course in filtered_courses]
+    print(callback.data)
+    print(filtered_courses)
+    return callback.data in [course["name"] for course in filtered_courses]
 
 
-async def subcategory_filter(message: types.Message) -> bool:
-    state = dp.current_state(chat=message.chat.id, user=message.from_user.id)
+async def subcategory_filter(callback: types.CallbackQuery) -> bool:
+    message = callback.message
+    state = dp.current_state(user=callback.from_user.id, chat=message.chat.id)
     state_data = await parse_state(state=state)
-    return message.text in database.subcategories[state_data.category]
+    return callback.data in database.subcategories[state_data.category]
 
 
 async def send_height_message(
@@ -89,14 +94,21 @@ async def send_height_message(
     )
 
 
-@dp.message_handler(commands=["start", "help", "menu"], state="*")
-@dp.message_handler(Text(equals=["start", "help", "menu"], ignore_case=True), state="*")
+@dp.callback_query_handler(
+    Text(equals=["start", "help", "menu"], ignore_case=True), state="*"
+)
+@dp.message_handler(Command(commands=["start", "help", "menu"]), state="*")
 async def send_welcome(
-    message: types.Message, state: FSMContext
+    callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
     """
     This handler will be called when user sends `/start` or `/help` command
     """
+    if isinstance(callback_or_message, types.CallbackQuery):
+        message = callback_or_message.message
+    else:
+        message = callback_or_message
+
     logger.info(
         "all_states: %s, all_states_names: %s", Form.all_states, Form.all_states_names
     )
@@ -109,15 +121,19 @@ async def send_welcome(
     return await send_height_message(message=message, initial=True)
 
 
-@dp.message_handler(state="*", commands=["cancel", "stop"])
-@dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
-@dp.message_handler(Text(equals="stop", ignore_case=True), state="*")
+@dp.callback_query_handler(Text(equals=["cancel", "stop"], ignore_case=True), state="*")
+@dp.message_handler(Command(commands=["cancel", "stop"]), state="*")
 async def cancel_handler(
-    message: types.Message, state: FSMContext
+    callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
     """
     Allow user to cancel any action
     """
+    if isinstance(callback_or_message, types.CallbackQuery):
+        message = callback_or_message.message
+    else:
+        message = callback_or_message
+
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -132,11 +148,15 @@ async def cancel_handler(
     )
 
 
-@dp.message_handler(state="*", commands="back")
+@dp.callback_query_handler(Text(equals="back", ignore_case=True), state="*")
 @dp.message_handler(Text(equals="back", ignore_case=True), state="*")
 async def back_handler(
-    message: types.Message, state: FSMContext
+    callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+    if isinstance(callback_or_message, types.CallbackQuery):
+        message = callback_or_message.message
+    else:
+        message = callback_or_message
     current_state = await state.get_state()
     logger.debug("back from state: %s", current_state)
     if current_state is None:
@@ -147,29 +167,26 @@ async def back_handler(
     logger.debug("current state: %s", current_state)
     state_data = await parse_state(state=state)
     logger.debug("state data: %s", state_data)
-    try:
-        match current_state:
-            case Form.height.state:
-                return await send_height_message(message=message)
-            case Form.weight.state:
-                return await send_weight_message(message=message)
-            case Form.category.state:
-                return await send_category_message(message=message)
-            case Form.subcategory.state:
-                return await send_subcategory_message(
-                    message=message,
-                    state=state,
-                )
-            case Form.course.state:
-                return await send_course_message(
-                    message=message,
-                    category=state_data.category,
-                    subcategory=state_data.subcategory,
-                )
-            case Form.lead.state:
-                return await send_lead_message(message=message)
-    finally:
-        await message.delete()
+    match current_state:
+        case Form.height.state:
+            return await send_height_message(message=message)
+        case Form.weight.state:
+            return await send_weight_message(message=message)
+        case Form.category.state:
+            return await send_category_message(message=message)
+        case Form.subcategory.state:
+            return await send_subcategory_message(
+                message=message,
+                state=state,
+            )
+        case Form.course.state:
+            return await send_course_message(
+                message=message,
+                category=state_data.category,
+                subcategory=state_data.subcategory,
+            )
+        case Form.lead.state:
+            return await send_lead_message(message=message)
 
 
 async def send_weight_message(message: types.Message) -> types.Message | SendMessage:
@@ -222,13 +239,15 @@ async def send_subcategory_message(
     )
 
 
-@dp.message_handler(
-    lambda message: message.text in database.categories, state=Form.category
+@dp.callback_query_handler(
+    lambda callback: callback.data in database.categories, state=Form.category
 )
 async def process_category(
-    message: types.Message, state: FSMContext
+    callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
-    await state.update_data(category=message.text)
+    message = callback.message
+    print(callback.data)
+    await state.update_data(category=callback.data)
     await state.set_state(Form.subcategory)
     return await send_subcategory_message(message=message, state=state)
 
@@ -244,16 +263,17 @@ async def send_course_message(
         chat_id=message.chat.id,
         text="Выберите курс",
         reply_markup=get_keyboard_markup(
-            buttons=sorted([course["название курса"] for course in recommended_courses])
+            buttons=sorted([course["name"] for course in recommended_courses])
         ),
     )
 
 
-@dp.message_handler(subcategory_filter, state=Form.subcategory)
+@dp.callback_query_handler(subcategory_filter, state=Form.subcategory)
 async def process_subcategory(
-    message: types.Message, state: FSMContext
+    callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message:
-    await state.update_data(subcategory=message.text)
+    message = callback.message
+    await state.update_data(subcategory=callback.data)
     state_data = await parse_state(state=state)
     await state.set_state(Form.course)
     return await send_course_message(
@@ -266,7 +286,7 @@ async def process_subcategory(
 async def calculate_course_price(course_name: str, bsa: float) -> decimal.Decimal:
     course: dict[str, str] = await database.find_course_by_name(name=course_name)
     return (
-        decimal.Decimal(course["коэффициент"].replace(" ", "").replace(",", "."))
+        decimal.Decimal(course["coefficient"].replace(" ", "").replace(",", "."))
         * decimal.Decimal(str(bsa))
         * decimal.Decimal("0.6")
     )
@@ -283,17 +303,19 @@ async def send_lead_message(
         chat_id=message.chat.id,
         text=md.text(add_text, md.text("Введите номер телефона для связи"), sep="\n"),
         reply_markup=get_keyboard_markup(
-            buttons=[types.KeyboardButton(text="Share", request_contact=True)]
+            buttons=[types.KeyboardButton(text="Share", request_contact=True)],
+            inline=False,
         ),
         parse_mode=ParseMode.MARKDOWN,
     )
 
 
-@dp.message_handler(course_filter, state=Form.course)
+@dp.callback_query_handler(lambda callback: True, state=Form.course)
 async def process_course(
-    message: types.Message, state: FSMContext
+    callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
-    await state.update_data(course=message.text)
+    message = callback.message
+    await state.update_data(course=callback.data)
     state_data = await parse_state(state=state)
     course_price = await calculate_course_price(
         course_name=state_data.course,
@@ -359,32 +381,32 @@ async def process_subcategory_invalid(message: types.Message, state: FSMContext)
     )
 
 
-async def invalid_course_filter(message: types.Message) -> bool:
-    state = dp.current_state(chat=message.chat.id, user=message.from_user.id)
-    data = await state.get_data()
-    category = data["category"]
-    subcategory = data["subcategory"]
+async def invalid_course_filter(callback: types.CallbackQuery) -> bool:
+    message = callback.message
+    state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
+    data = await parse_state(state=state)
+    courses = await database.find_courses(
+        category=data.category, subcategory=data.subcategory
+    )
+    return callback.data not in [course["name"] for course in courses]
 
-    courses = await database.find_courses(category=category, subcategory=subcategory)
-    return message.text not in [course["название курса"] for course in courses]
 
-
-@dp.message_handler(
+@dp.callback_query_handler(
     invalid_course_filter,
     state=Form.course,
 )
 async def process_course_invalid(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    category = data["category"]
-    subcategory = data["subcategory"]
+    data = await parse_state(state=state)
 
-    courses = await database.find_courses(category=category, subcategory=subcategory)
+    courses = await database.find_courses(
+        category=data.category, subcategory=data.subcategory
+    )
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text="Неверно выбран курс. Выберите курс на клавиатуре.",
         reply_markup=get_keyboard_markup(
-            buttons=sorted([course["название курса"] for course in courses])
+            buttons=sorted([course["name"] for course in courses])
         ),
     )
 

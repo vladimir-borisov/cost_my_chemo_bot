@@ -12,6 +12,18 @@ from cost_my_chemo_bot.config import SETTINGS
 logger = logging.getLogger(__name__)
 
 
+FIELDS_MAPPING = {
+    "название курса": "name",
+    "коэффициент": "coefficient",
+    "подкатегория 1": "category",
+    "нозология 1": "subcategory_1",
+    "нозология 2": "subcategory_2",
+    "нозология 3": "subcategory_3",
+    "нозология 4": "subcategory_4",
+    "нозология 5": "fixed_price",
+}
+
+
 class DB:
     _courses: typing.ClassVar[list[dict] | None] = None
     _categories: typing.ClassVar[set[str] | None] = None
@@ -56,7 +68,17 @@ class DB:
         for row in values[1:]:
             courses.append(dict(zip(header, row)))
 
-        return courses
+        courses_with_mapped_fields = []
+        for course in courses:
+            course_with_mapped_fields = {}
+            for key in course:
+                mapped_field = FIELDS_MAPPING.get(key)
+                if not mapped_field:
+                    continue
+                course_with_mapped_fields[mapped_field] = course[key]
+            courses_with_mapped_fields.append(course_with_mapped_fields)
+
+        return courses_with_mapped_fields
 
     @staticmethod
     def filter_empty_keys(values: list[list]) -> list[list]:
@@ -103,7 +125,7 @@ class DB:
     async def _fetch_categories(self) -> set[str]:
         categories = set()
         for course in DB._courses:
-            categories.add(course["подкатегория 1"])
+            categories.add(course["category"])
 
         return categories
 
@@ -111,11 +133,10 @@ class DB:
         subcategories = defaultdict(set)
         for course in DB._courses:
             course_copy = course.copy()
-            course_copy.pop("название курса", None)
-            course_copy.pop("коэффициент", None)
-            course_copy.pop("подкатегория 1", None)
-            course_subcategories = [v for v in course_copy.values() if v]
-            subcategories[course["подкатегория 1"]].update(course_subcategories)
+            course_subcategories = [
+                v for k, v in course_copy.items() if v and k.startswith("subcategory_")
+            ]
+            subcategories[course["category"]].update(course_subcategories)
 
         return dict(subcategories)
 
@@ -135,20 +156,14 @@ class DB:
         found = []
         for course in self.courses:
             course_copy = course.copy()
-            course_copy.pop("название курса", None)
-            course_copy.pop("коэффициент", None)
-            course_copy.pop("подкатегория 1", None)
-            if (
-                course["подкатегория 1"] == category
-                and subcategory in course_copy.values()
-            ):
+            if course["category"] == category and subcategory in course_copy.values():
                 found.append(course)
 
         return found
 
     async def find_course_by_name(self, name: str) -> dict:
         for course in self.courses:
-            if course["название курса"] != name:
+            if course["name"] != name:
                 continue
             return course
 
