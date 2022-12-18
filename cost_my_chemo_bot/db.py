@@ -68,17 +68,7 @@ class DB:
         for row in values[1:]:
             courses.append(dict(zip(header, row)))
 
-        courses_with_mapped_fields = []
-        for course in courses:
-            course_with_mapped_fields = {}
-            for key in course:
-                mapped_field = FIELDS_MAPPING.get(key)
-                if not mapped_field:
-                    continue
-                course_with_mapped_fields[mapped_field] = course[key]
-            courses_with_mapped_fields.append(course_with_mapped_fields)
-
-        return courses_with_mapped_fields
+        return courses
 
     @staticmethod
     def filter_empty_keys(values: list[list]) -> list[list]:
@@ -108,6 +98,20 @@ class DB:
 
         return normalized_courses
 
+    @staticmethod
+    def map_courses_fields(courses: list[dict]) -> list[dict]:
+        courses_with_mapped_fields = []
+        for course in courses:
+            course_with_mapped_fields = {}
+            for key in course:
+                mapped_field = FIELDS_MAPPING.get(key)
+                if not mapped_field:
+                    continue
+                course_with_mapped_fields[mapped_field] = course[key].replace("\n", " ")
+            courses_with_mapped_fields.append(course_with_mapped_fields)
+
+        return courses_with_mapped_fields
+
     async def _fetch_courses(self) -> list[dict]:
         agc = await self.agcm.authorize()
         spreadsheet = await agc.open_by_url(SETTINGS.SPREADSHEET_URL)
@@ -119,6 +123,7 @@ class DB:
         filtered_values = self.filter_empty_keys(values=spreadsheet_values)
         courses = self.parse_courses(values=filtered_values)
         courses = self.normalize_courses_strings(courses=courses)
+        courses = self.map_courses_fields(courses=courses)
 
         return courses
 
@@ -152,7 +157,9 @@ class DB:
         DB.loaded = True
         logger.debug("loaded db successfully")
 
-    async def find_courses(self, category: str, subcategory: str) -> list[dict]:
+    async def find_courses(
+        self, category: str, subcategory: str
+    ) -> list[dict[str, str]]:
         found = []
         for course in self.courses:
             course_copy = course.copy()

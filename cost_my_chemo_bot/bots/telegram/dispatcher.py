@@ -1,7 +1,7 @@
+import base64
 import decimal
 import logging
 import math
-from typing import Iterable
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
@@ -20,7 +20,6 @@ from cost_my_chemo_bot.db import DB
 
 logger = logging.getLogger(__name__)
 
-# Initialize bot and dispatcher
 bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
 storage = JSONStorage("storage.json")
 dp = Dispatcher(bot, storage=storage)
@@ -56,7 +55,6 @@ async def parse_state(state: FSMContext) -> StateData:
 
 
 async def course_filter(callback: types.CallbackQuery) -> bool:
-    print("hello")
     message = callback.message
     state = dp.current_state(user=callback.from_user.id, chat=message.chat.id)
     state_data = await parse_state(state=state)
@@ -64,9 +62,11 @@ async def course_filter(callback: types.CallbackQuery) -> bool:
         category=state_data.category,
         subcategory=state_data.subcategory,
     )
-    print(callback.data)
-    print(filtered_courses)
-    return callback.data in [course["name"] for course in filtered_courses]
+    try:
+        sorted([course["name"] for course in filtered_courses])[int(callback.data)]
+    except IndexError:
+        return False
+    return True
 
 
 async def subcategory_filter(callback: types.CallbackQuery) -> bool:
@@ -135,15 +135,12 @@ async def cancel_handler(
         message = callback_or_message
 
     current_state = await state.get_state()
-    if current_state is None:
-        return
-
     logger.info("Cancelling state %r", current_state)
     await state.finish()
     return await send_message(
         bot,
         chat_id=message.chat.id,
-        text="Cancelled.",
+        text="До свидания!",
         reply_markup=types.ReplyKeyboardRemove(),
     )
 
@@ -246,7 +243,6 @@ async def process_category(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
-    print(callback.data)
     await state.update_data(category=callback.data)
     await state.set_state(Form.subcategory)
     return await send_subcategory_message(message=message, state=state)
@@ -258,12 +254,15 @@ async def send_course_message(
     recommended_courses = await database.find_courses(
         category=category, subcategory=subcategory
     )
+    recommended_courses_names = sorted(
+        {course["name"] for course in recommended_courses}
+    )
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text="Выберите курс",
         reply_markup=get_keyboard_markup(
-            buttons=sorted([course["name"] for course in recommended_courses])
+            buttons=sorted(recommended_courses_names), index_callback=True
         ),
     )
 
@@ -285,6 +284,9 @@ async def process_subcategory(
 
 async def calculate_course_price(course_name: str, bsa: float) -> decimal.Decimal:
     course: dict[str, str] = await database.find_course_by_name(name=course_name)
+    if course["fixed_price"]:
+        return decimal.Decimal(course["coefficient"].replace(" ", "").replace(",", "."))
+
     return (
         decimal.Decimal(course["coefficient"].replace(" ", "").replace(",", "."))
         * decimal.Decimal(str(bsa))
@@ -310,12 +312,15 @@ async def send_lead_message(
     )
 
 
-@dp.callback_query_handler(lambda callback: True, state=Form.course)
+@dp.callback_query_handler(course_filter, state=Form.course)
 async def process_course(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
-    await state.update_data(course=callback.data)
+    course_name = sorted([course["name"] for course in database.courses])[
+        int(callback.data)
+    ]
+    await state.update_data(course=course_name)
     state_data = await parse_state(state=state)
     course_price = await calculate_course_price(
         course_name=state_data.course,
@@ -340,6 +345,7 @@ async def process_lead(message: types.Message, state: FSMContext):
     logger.info("%s", message.contact)
     await state.update_data(lead=message.contact.as_json())
     await state.set_state(None)
+    await message.reply("Спасибо!", reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(
@@ -388,14 +394,19 @@ async def invalid_course_filter(callback: types.CallbackQuery) -> bool:
     courses = await database.find_courses(
         category=data.category, subcategory=data.subcategory
     )
-    return callback.data not in [course["name"] for course in courses]
+    try:
+        sorted([course["name"] for course in courses])[callback.data]
+    except IndexError:
+        return False
+    return True
 
 
 @dp.callback_query_handler(
     invalid_course_filter,
     state=Form.course,
 )
-async def process_course_invalid(message: types.Message, state: FSMContext):
+async def process_course_invalid(callback: types.CallbackQuery, state: FSMContext):
+    message = callback.message
     data = await parse_state(state=state)
 
     courses = await database.find_courses(
