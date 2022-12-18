@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 async def on_startup(dp):
     database = DB()
     await database.load_db()
+    logger.info("subs=%s", database.subcategories)
+    logger.info("courses=%s", database.courses)
     if (
         SETTINGS.BOT_MODE
         is BotMode.WEBHOOK
