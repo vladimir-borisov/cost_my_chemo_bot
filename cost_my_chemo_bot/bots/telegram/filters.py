@@ -9,6 +9,7 @@ database = DB()
 
 welcome_callback = Text(equals=["start", "help", "menu"], ignore_case=True)
 welcome_message = Command(commands=["start", "help", "menu"])
+welcome_message_text = Text(equals=["start", "help", "menu"], ignore_case=True)
 back_valid = Text(equals="back", ignore_case=True)
 
 
