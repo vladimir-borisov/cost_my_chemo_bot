@@ -27,7 +27,7 @@ async def send_height_message(
 ) -> types.Message | SendMessage:
     text = ""
     if initial:
-        text += messages.WELCOME.format(full_name=message.from_user.full_name)
+        text += messages.WELCOME.format(full_name=message.chat.full_name)
     text += messages.HEIGHT_INPUT
     return await send_message(
         bot,

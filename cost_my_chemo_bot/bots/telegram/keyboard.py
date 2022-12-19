@@ -7,7 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_keyboard_markup(
-    buttons: typing.Iterable[str | types.InlineKeyboardButton] = tuple(),
+    buttons: typing.Iterable[
+        str | types.InlineKeyboardButton | types.KeyboardButton
+    ] = tuple(),
     inline: bool = True,
 ) -> types.ReplyKeyboardMarkup:
     if inline:
