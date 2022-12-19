@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str
     LOG_LEVEL: int = Field(logging.INFO)
     BOT_MODE: BotMode = BotMode.POLLING
+    STATE_STORAGE_PATH: FilePath = "storage.json"
 
     class Config:
         env_file = ".env"
