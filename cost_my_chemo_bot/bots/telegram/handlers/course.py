@@ -28,7 +28,7 @@ async def process_course(
     message = callback.message
     course_name = [
         course.name for course in database.courses if course.id == int(callback.data)
-    ]
+    ][0]
 
     await state.update_data(course=course_name)
     state_data = await parse_state(state=state)

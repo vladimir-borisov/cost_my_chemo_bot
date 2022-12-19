@@ -11,7 +11,7 @@ def get_keyboard_markup(
         str | types.InlineKeyboardButton | types.KeyboardButton
     ] = tuple(),
     inline: bool = True,
-) -> types.ReplyKeyboardMarkup:
+) -> types.ReplyKeyboardMarkup | types.InlineKeyboardMarkup:
     if inline:
         keyboard_markup = types.InlineKeyboardMarkup()
         for button in buttons:
