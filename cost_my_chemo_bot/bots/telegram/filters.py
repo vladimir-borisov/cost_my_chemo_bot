@@ -57,9 +57,15 @@ async def course_valid(callback: types.CallbackQuery) -> bool:
         subcategory=state_data.subcategory,
     )
     try:
-        sorted([course.name for course in filtered_courses])[int(callback.data)]
-    except (IndexError, ValueError):
+        course_id = int(callback.data)
+    except ValueError:
         return False
+
+    filtered_courses = [course for course in filtered_courses if course.id == course_id]
+    if not filtered_courses:
+        return False
+
+    assert len(filtered_courses) == 1
     return True
 
 
@@ -68,11 +74,18 @@ async def course_invalid(callback: types.CallbackQuery) -> bool:
     dp = Dispatcher.get_current()
     state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
     data = await parse_state(state=state)
-    courses = await database.find_courses(
+    filtered_courses = await database.find_courses(
         category=data.category, subcategory=data.subcategory
     )
+
     try:
-        sorted([course.name for course in courses])[int(callback.data)]
-    except (IndexError, TypeError, ValueError):
+        course_id = int(callback.data)
+    except ValueError:
         return True
+
+    filtered_courses = [course for course in filtered_courses if course.id == course_id]
+    if not filtered_courses:
+        return True
+
+    assert len(filtered_courses) == 1
     return False

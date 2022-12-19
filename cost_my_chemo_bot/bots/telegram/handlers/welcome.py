@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 async def welcome_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
-    logger.info("HELLO")
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
