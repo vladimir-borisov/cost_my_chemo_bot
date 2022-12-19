@@ -26,10 +26,7 @@ async def process_category(
     return await dispatcher.send_subcategory_message(message=message, state=state)
 
 
-@dispatcher.dp.message_handler(
-    filters.category_invalid,
-    state=Form.category,
-)
+@dispatcher.dp.callback_query_handler(filters.category_invalid, state=Form.category)
 async def process_category_invalid(
     message: types.Message,
 ) -> types.Message | SendMessage:

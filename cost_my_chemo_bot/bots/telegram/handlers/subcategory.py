@@ -28,9 +28,8 @@ async def process_subcategory(
     )
 
 
-@dispatcher.dp.message_handler(
-    filters.subcategory_invalid,
-    state=Form.subcategory,
+@dispatcher.dp.callback_query_handler(
+    filters.subcategory_invalid, state=Form.subcategory
 )
 async def process_subcategory_invalid(message: types.Message, state: FSMContext):
     data = await parse_state(state=state)

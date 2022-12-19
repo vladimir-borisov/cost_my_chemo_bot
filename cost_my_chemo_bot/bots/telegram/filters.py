@@ -40,8 +40,9 @@ async def subcategory_valid(callback: types.CallbackQuery) -> bool:
     return callback.data in database.subcategories[state_data.category]
 
 
-async def subcategory_invalid(message: types.Message) -> bool:
+async def subcategory_invalid(callback: types.CallbackQuery) -> bool:
     dp = Dispatcher.get_current()
+    message = callback.message
     state = dp.current_state(chat=message.chat.id, user=message.from_user.id)
     data = await parse_state(state=state)
     return message.text not in database.subcategories[data.category]

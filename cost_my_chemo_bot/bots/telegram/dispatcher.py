@@ -83,6 +83,7 @@ async def send_course_message(
                 callback_data=course.id,
             )
         )
+
     return await send_message(
         bot,
         chat_id=message.chat.id,

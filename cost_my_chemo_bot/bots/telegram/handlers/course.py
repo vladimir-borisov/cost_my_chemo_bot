@@ -50,10 +50,7 @@ async def process_course(
     return await dispatcher.send_lead_message(message=message, add_text=course_text)
 
 
-@dispatcher.dp.callback_query_handler(
-    filters.course_invalid,
-    state=Form.course,
-)
+@dispatcher.dp.callback_query_handler(filters.course_invalid, state=Form.course)
 async def process_course_invalid(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
     data = await parse_state(state=state)

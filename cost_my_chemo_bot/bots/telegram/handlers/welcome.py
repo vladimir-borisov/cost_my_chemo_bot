@@ -20,9 +20,6 @@ async def welcome_handler(
     else:
         message = callback_or_message
 
-    logger.info(
-        "all_states: %s, all_states_names: %s", Form.all_states, Form.all_states_names
-    )
     current_state = await state.get_state()
     if current_state is not None:
         logger.info("Cancelling state %r", current_state)
