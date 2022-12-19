@@ -75,14 +75,19 @@ async def send_course_message(
     recommended_courses = await database.find_courses(
         category=category, subcategory=subcategory
     )
-    recommended_courses_names = sorted({course.name for course in recommended_courses})
+    buttons = []
+    for course in sorted(recommended_courses, key=lambda item: item.name):
+        buttons.append(
+            types.InlineKeyboardButton(
+                text=course.name,
+                callback_data=course.id,
+            )
+        )
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=messages.COURSE_CHOOSE,
-        reply_markup=get_keyboard_markup(
-            buttons=sorted(recommended_courses_names), index_callback=True
-        ),
+        reply_markup=get_keyboard_markup(buttons=buttons),
     )
 
 

@@ -1,23 +1,30 @@
-import base64
+import logging
 import typing
 
 from aiogram import types
 
+logger = logging.getLogger(__name__)
+
 
 def get_keyboard_markup(
-    buttons: typing.Iterable[str] = tuple(),
+    buttons: typing.Iterable[str | types.InlineKeyboardButton] = tuple(),
     inline: bool = True,
-    index_callback: bool = False,
 ) -> types.ReplyKeyboardMarkup:
     if inline:
         keyboard_markup = types.InlineKeyboardMarkup()
-        for i, button in enumerate(buttons):
-            keyboard_markup.add(
-                types.InlineKeyboardButton(
-                    text=button,
-                    callback_data=i if index_callback else button,
+        for button in buttons:
+            if isinstance(button, str):
+                keyboard_markup.add(
+                    types.InlineKeyboardButton(
+                        text=button,
+                        callback_data=button,
+                    )
                 )
-            )
+            elif isinstance(button, types.InlineKeyboardButton):
+                keyboard_markup.add(button)
+            else:
+                logger.warning("can't add button of type: %s", type(button))
+                continue
 
         keyboard_markup.row(
             types.InlineKeyboardButton("Back", callback_data="back"),
