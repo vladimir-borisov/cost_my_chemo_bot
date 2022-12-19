@@ -26,9 +26,10 @@ async def process_course(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
-    course_name = sorted([course.name for course in database.courses])[
-        int(callback.data)
+    course_name = [
+        course.name for course in database.courses if course.id == int(callback.data)
     ]
+
     await state.update_data(course=course_name)
     state_data = await parse_state(state=state)
     course_price = await calculate_course_price(
