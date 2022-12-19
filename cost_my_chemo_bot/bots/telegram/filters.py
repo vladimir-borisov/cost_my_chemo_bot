@@ -7,25 +7,37 @@ from cost_my_chemo_bot.db import DB
 database = DB()
 
 
-welcome_callback = Text(equals=["start", "help", "menu"], ignore_case=True)
-welcome_message = Command(commands=["start", "help", "menu"])
-welcome_message_text = Text(equals=["start", "help", "menu"], ignore_case=True)
+welcome_callback = Text(equals=["start", "menu"], ignore_case=True)
+welcome_message = Command(commands=["start", "menu"])
+welcome_message_text = Text(equals=["start", "menu"], ignore_case=True)
 back_valid = Text(equals="back", ignore_case=True)
 
 
 async def height_valid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return message.text.isdigit()
 
 
 async def height_invalid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return not message.text.isdigit()
 
 
 async def weight_valid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return message.text.isdigit()
 
 
 async def weight_invalid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return not message.text.isdigit()
 
 

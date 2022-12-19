@@ -1,6 +1,7 @@
 import logging
 
 from aiogram import executor
+from aiogram import types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 # to register all handlers in dispatcher
@@ -13,12 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 async def on_startup(dp):
+    await bot.set_my_commands(commands=[
+        types.BotCommand(command="/start", description="Начать сначала"),
+        types.BotCommand(command="/menu", description="Начать сначала"),
+        types.BotCommand(command="/stop", description="Стоп"),
+    ])
     database = DB()
     await database.load_db()
     if (
         SETTINGS.BOT_MODE
         is BotMode.WEBHOOK
-        # and not WEBHOOK_SETTINGS.WEBHOOK_HOST.startswith("http://")
     ):
         logger.info(
             "set webhook: %s", await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)

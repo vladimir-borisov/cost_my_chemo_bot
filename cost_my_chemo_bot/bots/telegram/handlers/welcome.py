@@ -11,7 +11,7 @@ from cost_my_chemo_bot.bots.telegram.state import Form
 logger = logging.getLogger(__name__)
 
 
-@dispatcher.dp.message_handler(CommandStart())
+@dispatcher.dp.message_handler(CommandStart(), state="*")
 @dispatcher.dp.callback_query_handler(filters.welcome_callback, state="*")
 @dispatcher.dp.message_handler(filters.welcome_message, state="*")
 @dispatcher.dp.message_handler(filters.welcome_message_text, state="*")

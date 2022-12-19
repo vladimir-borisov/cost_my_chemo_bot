@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 @dispatcher.dp.callback_query_handler(
-    Text(equals=["cancel", "stop"], ignore_case=True), state="*"
+    Text(equals=["stop"], ignore_case=True), state="*"
 )
-@dispatcher.dp.message_handler(Command(commands=["cancel", "stop"]), state="*")
+@dispatcher.dp.message_handler(Command(commands=["stop"]), state="*")
 async def cancel_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:

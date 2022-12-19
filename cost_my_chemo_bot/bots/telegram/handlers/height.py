@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.message_handler(
-    lambda message: message.text.isdigit(), state=Form.height
-)
+@dispatcher.dp.message_handler(filters.height_valid, state=Form.height)
 async def process_height(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
