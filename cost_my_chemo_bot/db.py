@@ -12,6 +12,14 @@ from cost_my_chemo_bot.config import SETTINGS
 logger = logging.getLogger(__name__)
 
 
+class CategoryNotFound(Exception):
+    ...
+
+
+class NosologyNotFound(Exception):
+    ...
+
+
 class CourseNotFound(Exception):
     ...
 
@@ -159,6 +167,30 @@ class DB:
             return course
 
         raise CourseNotFound(f"no such course: {name}")
+
+    async def find_course_by_id(self, course_id: str) -> Course:
+        for course in self.courses:
+            if course.Courseid != course_id:
+                continue
+            return course
+
+        raise CourseNotFound(f"no such course: {course_id}")
+
+    async def find_category_by_id(self, category_id: str) -> Category:
+        for category in self.categories:
+            if category.categoryid != category_id:
+                continue
+            return category
+
+        raise CategoryNotFound(f"no such category: {category_id}")
+
+    async def find_nosology_by_id(self, nosology_id: str) -> Nosology:
+        for nosology in self.nosologies:
+            if nosology.nosologyid != nosology_id:
+                continue
+            return nosology
+
+        raise NosologyNotFound(f"no such nosology: {nosology_id}")
 
 
 if __name__ == "__main__":

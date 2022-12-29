@@ -88,7 +88,12 @@ async def send_course_message(
     recommended_courses: list[Course] = await database.find_courses(
         category_id=category_id, nosology_id=nosology_id
     )
-    logger.info("recommended_courses=%s", recommended_courses)
+    logger.info(
+        "category_id=%s nosology_id=%s recommended_courses=%s",
+        category_id,
+        nosology_id,
+        recommended_courses,
+    )
     buttons = []
     for course in sorted(recommended_courses, key=lambda item: item.Course):
         buttons.append(

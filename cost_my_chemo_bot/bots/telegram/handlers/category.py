@@ -19,7 +19,7 @@ async def process_category(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
-    await state.update_data(category=callback.data)
+    await state.update_data(category_id=callback.data)
     await state.set_state(Form.nosology)
     return await dispatcher.send_nosology_message(message=message, state=state)
 

@@ -18,7 +18,7 @@ async def process_nosology(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message:
     message = callback.message
-    await state.update_data(nosology=callback.data)
+    await state.update_data(nosology_id=callback.data)
     state_data = await parse_state(state=state)
     await state.set_state(Form.course)
     return await dispatcher.send_course_message(
@@ -30,12 +30,17 @@ async def process_nosology(
 
 @dispatcher.dp.callback_query_handler(filters.nosology_invalid, state=Form.nosology)
 async def process_nosology_invalid(message: types.Message, state: FSMContext):
-    data = await parse_state(state=state)
+    buttons = []
+    for nosology in sorted(database.nosologies, key=lambda item: item.nosologyName):
+        buttons.append(
+            types.InlineKeyboardButton(
+                text=nosology.nosologyName,
+                callback_data=nosology.nosologyid,
+            )
+        )
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
         text=messages.NOSOLOGY_WRONG,
-        reply_markup=get_keyboard_markup(
-            buttons=sorted(database.nosologies[data.category_id])
-        ),
+        reply_markup=get_keyboard_markup(buttons=buttons),
     )

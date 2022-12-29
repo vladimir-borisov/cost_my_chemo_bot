@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 database = DB()
 
 
-async def calculate_course_price(course_name: str, bsa: float) -> decimal.Decimal:
-    course = await database.find_course_by_name(name=course_name)
+async def calculate_course_price(course_id: str, bsa: float) -> decimal.Decimal:
+    course = await database.find_course_by_id(course_id=course_id)
     return course.price(bsa=bsa)
 
 
@@ -26,25 +26,21 @@ async def process_course(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
-    course_name = [
-        course.Course
-        for course in database.courses
-        if course.Courseid == int(callback.data)
-    ][0]
-
-    await state.update_data(course=course_name)
+    await state.update_data(course_id=callback.data)
     state_data = await parse_state(state=state)
     course_price = await calculate_course_price(
-        course_name=state_data.course_id,
+        course_id=state_data.course_id,
         bsa=state_data.bsa,
     )
-
+    category = await database.find_category_by_id(category_id=state_data.category_id)
+    nosology = await database.find_nosology_by_id(nosology_id=state_data.nosology_id)
+    course = await database.find_course_by_id(course_id=state_data.course_id)
     course_text = md.text(
         md.text("Рост:", md.bold(state_data.height)),
         md.text("Вес:", md.code(state_data.weight)),
-        md.text("Категория:", md.italic(state_data.category_id)),
-        md.text("Подкатегория:", md.italic(state_data.nosology_id)),
-        md.text("Курс:", state_data.course_id),
+        md.text("Категория:", md.italic(category.categoryName)),
+        md.text("Подкатегория:", md.italic(nosology.nosologyName)),
+        md.text("Курс:", course.Course),
         md.text("Цена:", f"{course_price:.2f}".replace(".", ",")),
         sep="\n",
     )

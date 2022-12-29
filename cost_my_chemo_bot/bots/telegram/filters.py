@@ -52,6 +52,8 @@ async def category_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def category_invalid(callback: types.CallbackQuery) -> bool:
+    if callback.data in ("menu", "back"):
+        return False
     return bool(
         [
             category
@@ -73,6 +75,8 @@ async def nosology_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def nosology_invalid(callback: types.CallbackQuery) -> bool:
+    if callback.data in ("menu", "back"):
+        return False
     nosology_id = callback.data
     return bool(
         [
@@ -104,6 +108,9 @@ async def course_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def course_invalid(callback: types.CallbackQuery) -> bool:
+    if callback.data in ("menu", "back"):
+        return False
+
     message = callback.message
     dp = Dispatcher.get_current()
     state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
