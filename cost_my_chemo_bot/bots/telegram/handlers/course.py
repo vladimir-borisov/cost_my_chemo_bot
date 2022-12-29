@@ -8,6 +8,7 @@ from aiogram.dispatcher.webhook import SendMessage
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters, messages
 from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
+from cost_my_chemo_bot.bots.telegram.messages import course_selected
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.db import DB
@@ -35,14 +36,13 @@ async def process_course(
     category = await database.find_category_by_id(category_id=state_data.category_id)
     nosology = await database.find_nosology_by_id(nosology_id=state_data.nosology_id)
     course = await database.find_course_by_id(course_id=state_data.course_id)
-    course_text = md.text(
-        md.text("Рост:", md.bold(state_data.height)),
-        md.text("Вес:", md.code(state_data.weight)),
-        md.text("Категория:", md.italic(category.categoryName)),
-        md.text("Подкатегория:", md.italic(nosology.nosologyName)),
-        md.text("Курс:", course.Course),
-        md.text("Цена:", f"{course_price:.2f}".replace(".", ",")),
-        sep="\n",
+    course_text = course_selected(
+        height=state_data.height,
+        weight=state_data.weight,
+        category=category,
+        nosology=nosology,
+        course=course,
+        price=course_price,
     )
     await state.set_state(Form.lead)
     return await dispatcher.send_lead_message(message=message, add_text=course_text)

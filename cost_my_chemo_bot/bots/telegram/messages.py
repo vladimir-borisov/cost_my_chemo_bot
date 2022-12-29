@@ -1,3 +1,9 @@
+import decimal
+
+import aiogram.utils.markdown as md
+
+from cost_my_chemo_bot.db import Category, Course, Nosology
+
 GOODBYE = "До свидания!"
 WELCOME = "Здравствуйте, {full_name}!\n" "Я помогу рассчитать стоимость курса лечения\n"
 HEIGHT_INPUT = "Введите ваш рост"
@@ -12,3 +18,22 @@ COURSE_CHOOSE = "Выберите курс"
 COURSE_WRONG = "Неверно выбран курс. Выберите курс на клавиатуре."
 LEAD_SHARE = "Введите номер телефона для связи"
 THANKS = "Спасибо!"
+
+
+def course_selected(
+    height: int,
+    weight: int,
+    category: Category,
+    nosology: Nosology,
+    course: Course,
+    course_price: decimal.Decimal,
+) -> str:
+    return md.text(
+        md.text("Рост:", md.bold(height)),
+        md.text("Вес:", md.code(weight)),
+        md.text("Категория:", md.italic(category.categoryName)),
+        md.text("Подкатегория:", md.italic(nosology.nosologyName)),
+        md.text("Курс:", course.Course),
+        md.text("Цена:", f"{course_price:.2f}".replace(".", ",")),
+        sep="\n",
+    )
