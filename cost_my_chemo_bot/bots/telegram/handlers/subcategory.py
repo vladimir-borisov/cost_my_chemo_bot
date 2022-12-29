@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.callback_query_handler(filters.subcategory_valid, state=Form.subcategory)
-async def process_subcategory(
+@dispatcher.dp.callback_query_handler(filters.nosology_valid, state=Form.nosology)
+async def process_nosology(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message:
     message = callback.message
@@ -28,16 +28,14 @@ async def process_subcategory(
     )
 
 
-@dispatcher.dp.callback_query_handler(
-    filters.subcategory_invalid, state=Form.subcategory
-)
-async def process_subcategory_invalid(message: types.Message, state: FSMContext):
+@dispatcher.dp.callback_query_handler(filters.nosology_invalid, state=Form.nosology)
+async def process_nosology_invalid(message: types.Message, state: FSMContext):
     data = await parse_state(state=state)
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
         text=messages.SUBCATEGORY_WRONG,
         reply_markup=get_keyboard_markup(
-            buttons=sorted(database.subcategories[data.category])
+            buttons=sorted(database.nosologies[data.category])
         ),
     )

@@ -23,7 +23,7 @@ class Form(StatesGroup):
     height = State()
     weight = State()
     category = State()
-    subcategory = State()
+    nosology = State()
     course = State()
     lead = State()
 

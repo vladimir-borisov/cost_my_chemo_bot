@@ -22,8 +22,8 @@ async def process_category(
 ) -> types.Message | SendMessage:
     message = callback.message
     await state.update_data(category=callback.data)
-    await state.set_state(Form.subcategory)
-    return await dispatcher.send_subcategory_message(message=message, state=state)
+    await state.set_state(Form.nosology)
+    return await dispatcher.send_nosology_message(message=message, state=state)
 
 
 @dispatcher.dp.callback_query_handler(filters.category_invalid, state=Form.category)

@@ -27,7 +27,9 @@ async def process_course(
 ) -> types.Message | SendMessage:
     message = callback.message
     course_name = [
-        course.name for course in database.courses if course.id == int(callback.data)
+        course.Course
+        for course in database.courses
+        if course.Courseid == int(callback.data)
     ][0]
 
     await state.update_data(course=course_name)
@@ -56,13 +58,13 @@ async def process_course_invalid(callback: types.CallbackQuery, state: FSMContex
     data = await parse_state(state=state)
 
     courses = await database.find_courses(
-        category=data.category, subcategory=data.subcategory
+        category=data.category, nosology=data.subcategory
     )
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
         text=messages.COURSE_WRONG,
         reply_markup=get_keyboard_markup(
-            buttons=sorted([course.name for course in courses])
+            buttons=sorted([course.Course for course in courses])
         ),
     )

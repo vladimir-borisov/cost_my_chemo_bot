@@ -12,7 +12,7 @@ from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.config import SETTINGS
-from cost_my_chemo_bot.db import DB
+from cost_my_chemo_bot.db import DB, Course
 
 logger = logging.getLogger(__name__)
 
@@ -47,40 +47,53 @@ async def send_weight_message(message: types.Message) -> types.Message | SendMes
 
 
 async def send_category_message(message: types.Message) -> types.Message:
+    buttons = []
+    for category in sorted(database.categories, key=lambda item: item.categoryName):
+        buttons.append(
+            types.InlineKeyboardButton(
+                text=category.categoryName,
+                callback_data=category.categoryid,
+            )
+        )
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=messages.CATEGORY_CHOOSE,
-        reply_markup=get_keyboard_markup(buttons=sorted(database.categories)),
+        reply_markup=get_keyboard_markup(buttons=buttons),
     )
 
 
-async def send_subcategory_message(
+async def send_nosology_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
-    state_data = await parse_state(state=state)
+    buttons = []
+    for nosology in sorted(database.nosologies, key=lambda item: item.nosologyName):
+        buttons.append(
+            types.InlineKeyboardButton(
+                text=nosology.nosologyName,
+                callback_data=nosology.nosologyid,
+            )
+        )
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=messages.SUBCATEGORY_CHOOSE,
-        reply_markup=get_keyboard_markup(
-            buttons=sorted(database.subcategories[state_data.category])
-        ),
+        reply_markup=get_keyboard_markup(buttons=buttons),
     )
 
 
 async def send_course_message(
     message: types.Message, category: str, subcategory: str
 ) -> types.Message | SendMessage:
-    recommended_courses = await database.find_courses(
-        category=category, subcategory=subcategory
+    recommended_courses: list[Course] = await database.find_courses(
+        category=category, nosology=subcategory
     )
     buttons = []
-    for course in sorted(recommended_courses, key=lambda item: item.name):
+    for course in sorted(recommended_courses, key=lambda item: item.Course):
         buttons.append(
             types.InlineKeyboardButton(
-                text=course.name,
-                callback_data=course.id,
+                text=course.Course,
+                callback_data=course.Courseid,
             )
         )
 

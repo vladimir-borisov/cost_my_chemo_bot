@@ -1,7 +1,7 @@
 import enum
 import logging
 
-from pydantic import BaseSettings, Field, FilePath, HttpUrl
+from pydantic import BaseSettings, Field, FilePath, HttpUrl, SecretStr
 
 
 class BotMode(enum.Enum):
@@ -10,9 +10,10 @@ class BotMode(enum.Enum):
 
 
 class Settings(BaseSettings):
-    SERVICE_ACCOUNT_KEY: FilePath = Field("cost-my-chemo-bot-1319d9c83553.json")
-    SPREADSHEET_URL: HttpUrl = "https://docs.google.com/spreadsheets/d/1xbSfnEiH3uUaqVwlFITPZNUgAk9vI0BOrQ-AnkYWhQ8/edit"
-    WORKSHEET_ID: int = 1707048628
+    ONCO_MEDCONSULT_API_URL: HttpUrl = "http://onco.medconsult.ru/onco/hs/MobHTTP/api"
+    ONCO_MEDCONSULT_API_LOGIN: str
+    ONCO_MEDCONSULT_API_PASSWORD: SecretStr
+
     TELEGRAM_BOT_TOKEN: str
     LOG_LEVEL: int = Field(logging.INFO)
     BOT_MODE: BotMode = BotMode.POLLING

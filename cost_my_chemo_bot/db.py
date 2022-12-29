@@ -3,42 +3,52 @@ import decimal
 import logging
 import typing
 import unicodedata
-from collections import defaultdict
 
-from google.oauth2.service_account import Credentials
-from gspread_asyncio import AsyncioGspreadClientManager, AsyncioGspreadWorksheet
-from pydantic import BaseModel, ValidationError
+from httpx import AsyncClient
+from pydantic import BaseModel, Field, ValidationError, validator
 
 from cost_my_chemo_bot.config import SETTINGS
 
 logger = logging.getLogger(__name__)
 
 
-FIELDS_MAPPING = {
-    "название курса": "name",
-    "коэффициент": "coefficient",
-    "подкатегория 1": "category",
-    "нозология 1": "subcategory_1",
-    "нозология 2": "subcategory_2",
-    "нозология 3": "subcategory_3",
-    "нозология 4": "subcategory_4",
-    "нозология 5": "fixed_price",
-}
+class CourseNotFound(Exception):
+    ...
+
+
+class Category(BaseModel):
+    categoryid: str
+    categoryName: str
+
+
+class Nosology(BaseModel):
+    nosologyid: str
+    nosologyName: str
 
 
 class Course(BaseModel):
-    id: int
-    name: str
+    Courseid: str
+    Course: str
+    categoryid: str
     coefficient: decimal.Decimal
-    category: str
-    subcategory_1: str
-    subcategory_2: str
-    subcategory_3: str
-    subcategory_4: str
-    fixed_price: bool
+    nosologyid1: str
+    nosologyid2: str
+    nosologyid3: str
+    nosologyid4: str
+    nosologyid5: str
+    fixPrice: bool
+
+    @validator("coefficient", pre=True)
+    def normalize_coefficient(cls, v: typing.Any) -> decimal.Decimal:
+        if isinstance(v, str):
+            normalized = unicodedata.normalize("NFKD", v)
+            normalized = normalized.replace(" ", "")
+            return decimal.Decimal(normalized)
+
+        return v
 
     def price(self, bsa: float) -> decimal.Decimal:
-        if self.fixed_price:
+        if self.fixPrice:
             return self.coefficient
 
         return self.coefficient * decimal.Decimal(str(bsa)) * decimal.Decimal("0.6")
@@ -46,12 +56,19 @@ class Course(BaseModel):
 
 class DB:
     _courses: typing.ClassVar[list[Course] | None] = None
-    _categories: typing.ClassVar[set[str] | None] = None
-    _subcategories: typing.ClassVar[dict[str, set[str]] | None] = None
+    _categories: typing.ClassVar[list[Category] | None] = None
+    _nosologies: typing.ClassVar[list[Nosology] | None] = None
     loaded: typing.ClassVar[bool] = False
 
     def __init__(self):
-        self.agcm = AsyncioGspreadClientManager(self.get_creds)
+        self.client = AsyncClient(
+            base_url=SETTINGS.ONCO_MEDCONSULT_API_URL,
+            auth=(
+                SETTINGS.ONCO_MEDCONSULT_API_LOGIN,
+                SETTINGS.ONCO_MEDCONSULT_API_PASSWORD.get_secret_value(),
+            ),
+            headers={"Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8"},
+        )
 
     @property
     def courses(self) -> list[Course]:
@@ -59,24 +76,14 @@ class DB:
         return DB._courses
 
     @property
-    def categories(self) -> set[str]:
+    def categories(self) -> list[Category]:
         assert DB.loaded
         return DB._categories
 
     @property
-    def subcategories(self) -> dict[str, set[str]]:
+    def nosologies(self) -> list[Nosology]:
         assert DB.loaded
-        return DB._subcategories
-
-    @staticmethod
-    def get_creds():
-        creds = Credentials.from_service_account_file(SETTINGS.SERVICE_ACCOUNT_KEY)
-        scoped = creds.with_scopes(
-            [
-                "https://www.googleapis.com/auth/spreadsheets",
-            ]
-        )
-        return scoped
+        return DB._nosologies
 
     @staticmethod
     def parse_courses(values: list[list]) -> list[Course]:
@@ -87,7 +94,6 @@ class DB:
         header = values[0]
         for i, row in enumerate(values[1:]):
             course = dict(zip(header, row))
-            course = DB.map_course_fields(course)
             course["id"] = i
             course["fixed_price"] = bool(course.pop("fixed_price", False))
             course["coefficient"] = (
@@ -102,61 +108,23 @@ class DB:
 
         return courses
 
-    @staticmethod
-    def filter_empty_keys(values: list[list]) -> list[list]:
-        filtered_list = []
-        if not values:
-            return filtered_list
-
-        header = values[0]
-        header = [key for key in header if key != ""]
-        filtered_list.append(header)
-        for row in values[1:]:
-            row = row[: len(header) + 1]
-            filtered_list.append(row)
-
-        return filtered_list
-
-    @staticmethod
-    def map_course_fields(course: dict) -> dict:
-        course_with_mapped_fields = {}
-        for key in course:
-            mapped_field = FIELDS_MAPPING.get(key)
-            if not mapped_field:
-                continue
-            value = course[key]
-            # normalize latin from sheets to unicode, mainly for coefficient's nbsps
-            value = unicodedata.normalize("NFKD", value)
-            course_with_mapped_fields[mapped_field] = value.replace("\n", " ")
-        return course_with_mapped_fields
-
     async def _fetch_courses(self) -> list[Course]:
-        agc = await self.agcm.authorize()
-        spreadsheet = await agc.open_by_url(SETTINGS.SPREADSHEET_URL)
+        resp = await self.client.get("", params={"action": "Course"})
+        resp.raise_for_status()
+        result = resp.json()["result"]
+        return [Course(**course_raw) for course_raw in result]
 
-        general_spreadsheet: AsyncioGspreadWorksheet = (
-            await spreadsheet.get_worksheet_by_id(SETTINGS.WORKSHEET_ID)
-        )
-        spreadsheet_values = await general_spreadsheet.get_all_values()
-        filtered_values = self.filter_empty_keys(values=spreadsheet_values)
-        return self.parse_courses(values=filtered_values)
+    async def _fetch_categories(self) -> list[Category]:
+        resp = await self.client.get("", params={"action": "category"})
+        resp.raise_for_status()
+        result = resp.json()["result"]
+        return [Category(**category_raw) for category_raw in result]
 
-    async def _fetch_categories(self) -> set[str]:
-        categories = set()
-        for course in DB._courses:
-            categories.add(course.category)
-
-        return categories
-
-    async def _fetch_subcategories(self) -> dict[str, set[str]]:
-        subcategories = defaultdict(set)
-        for course in DB._courses:
-            course_subcategories = [
-                v for k, v in course if v and k.startswith("subcategory_")
-            ]
-            subcategories[course.category].update(course_subcategories)
-
-        return dict(subcategories)
+    async def _fetch_nosologies(self) -> list[Nosology]:
+        resp = await self.client.get("", params={"action": "nosology"})
+        resp.raise_for_status()
+        result = resp.json()["result"]
+        return [Nosology(**nosology_raw) for nosology_raw in result]
 
     async def load_db(self) -> None:
         logger.debug("loading db")
@@ -166,23 +134,31 @@ class DB:
 
         DB._courses = await self._fetch_courses()
         DB._categories = await self._fetch_categories()
-        DB._subcategories = await self._fetch_subcategories()
+        DB._nosologies = await self._fetch_nosologies()
         DB.loaded = True
         logger.debug("loaded db successfully")
 
-    async def find_courses(self, category: str, subcategory: str) -> list[Course]:
+    async def find_courses(self, category_id: str, nosology_id: str) -> list[Course]:
         found = []
         for course in self.courses:
-            if course.category == category and subcategory in course.dict().values():
+            if course.categoryid == category_id and (
+                course.nosologyid1 == nosology_id
+                or course.nosologyid2 == nosology_id
+                or course.nosologyid3 == nosology_id
+                or course.nosologyid4 == nosology_id
+                or course.nosologyid5 == nosology_id
+            ):
                 found.append(course)
 
         return found
 
     async def find_course_by_name(self, name: str) -> Course:
         for course in self.courses:
-            if course.name != name:
+            if course.Course != name:
                 continue
             return course
+
+        raise CourseNotFound(f"no such course: {name}")
 
 
 if __name__ == "__main__":
@@ -190,4 +166,4 @@ if __name__ == "__main__":
     asyncio.run(db.load_db(), debug=True)
     print(db.courses)
     print(db.categories)
-    print(db.subcategories)
+    print(db.nosologies)

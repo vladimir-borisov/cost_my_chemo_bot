@@ -37,8 +37,8 @@ async def back_handler(
             return await dispatcher.send_weight_message(message=message)
         case Form.category.state:
             return await dispatcher.send_category_message(message=message)
-        case Form.subcategory.state:
-            return await dispatcher.send_subcategory_message(
+        case Form.nosology.state:
+            return await dispatcher.send_nosology_message(
                 message=message,
                 state=state,
             )
