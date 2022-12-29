@@ -1,7 +1,6 @@
 import decimal
 import logging
 
-import aiogram.utils.markdown as md
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
@@ -42,7 +41,7 @@ async def process_course(
         category=category,
         nosology=nosology,
         course=course,
-        price=course_price,
+        course_price=course_price,
     )
     await state.set_state(Form.lead)
     return await dispatcher.send_lead_message(message=message, add_text=course_text)
