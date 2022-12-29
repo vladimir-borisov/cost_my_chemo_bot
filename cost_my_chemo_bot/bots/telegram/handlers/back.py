@@ -45,8 +45,8 @@ async def back_handler(
         case Form.course.state:
             return await dispatcher.send_course_message(
                 message=message,
-                category=state_data.category,
-                subcategory=state_data.subcategory,
+                category_id=state_data.category_id,
+                nosology_id=state_data.nosology_id,
             )
         case Form.lead.state:
             return await dispatcher.send_lead_message(message=message)

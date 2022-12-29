@@ -18,13 +18,13 @@ async def process_nosology(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message:
     message = callback.message
-    await state.update_data(subcategory=callback.data)
+    await state.update_data(nosology=callback.data)
     state_data = await parse_state(state=state)
     await state.set_state(Form.course)
     return await dispatcher.send_course_message(
         message=message,
-        category=state_data.category,
-        subcategory=state_data.subcategory,
+        category_id=state_data.category_id,
+        nosology_id=state_data.nosology_id,
     )
 
 
@@ -34,8 +34,8 @@ async def process_nosology_invalid(message: types.Message, state: FSMContext):
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
-        text=messages.SUBCATEGORY_WRONG,
+        text=messages.NOSOLOGY_WRONG,
         reply_markup=get_keyboard_markup(
-            buttons=sorted(database.nosologies[data.category])
+            buttons=sorted(database.nosologies[data.category_id])
         ),
     )

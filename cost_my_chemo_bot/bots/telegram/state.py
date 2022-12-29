@@ -8,9 +8,9 @@ from pydantic import BaseModel
 class StateData(BaseModel):
     height: int | None = None
     weight: int | None = None
-    category: str | None = None
-    subcategory: str | None = None
-    course: str | None = None
+    category_id: str | None = None
+    nosology_id: str | None = None
+    course_id: str | None = None
 
     @property
     def bsa(self) -> float:

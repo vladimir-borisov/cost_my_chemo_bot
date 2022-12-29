@@ -35,16 +35,16 @@ async def process_course(
     await state.update_data(course=course_name)
     state_data = await parse_state(state=state)
     course_price = await calculate_course_price(
-        course_name=state_data.course,
+        course_name=state_data.course_id,
         bsa=state_data.bsa,
     )
 
     course_text = md.text(
         md.text("Рост:", md.bold(state_data.height)),
         md.text("Вес:", md.code(state_data.weight)),
-        md.text("Категория:", md.italic(state_data.category)),
-        md.text("Подкатегория:", md.italic(state_data.subcategory)),
-        md.text("Курс:", state_data.course),
+        md.text("Категория:", md.italic(state_data.category_id)),
+        md.text("Подкатегория:", md.italic(state_data.nosology_id)),
+        md.text("Курс:", state_data.course_id),
         md.text("Цена:", f"{course_price:.2f}".replace(".", ",")),
         sep="\n",
     )
@@ -58,7 +58,7 @@ async def process_course_invalid(callback: types.CallbackQuery, state: FSMContex
     data = await parse_state(state=state)
 
     courses = await database.find_courses(
-        category=data.category, nosology=data.subcategory
+        category_id=data.category_id, nosology_id=data.nosology_id
     )
     return await send_message(
         dispatcher.bot,

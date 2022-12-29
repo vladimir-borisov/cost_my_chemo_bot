@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.callback_query_handler(
-    lambda callback: callback.data in database.categories, state=Form.category
-)
+@dispatcher.dp.callback_query_handler(filters.category_valid, state=Form.category)
 async def process_category(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -28,11 +26,11 @@ async def process_category(
 
 @dispatcher.dp.callback_query_handler(filters.category_invalid, state=Form.category)
 async def process_category_invalid(
-    message: types.Message,
+    callback: types.CallbackQuery,
 ) -> types.Message | SendMessage:
     return await send_message(
         dispatcher.bot,
-        chat_id=message.chat.id,
+        chat_id=callback.message.chat.id,
         text=messages.CATEGORY_WRONG,
         reply_markup=get_keyboard_markup(buttons=sorted(database.categories)),
     )

@@ -77,17 +77,18 @@ async def send_nosology_message(
     return await send_message(
         bot,
         chat_id=message.chat.id,
-        text=messages.SUBCATEGORY_CHOOSE,
+        text=messages.NOSOLOGY_CHOOSE,
         reply_markup=get_keyboard_markup(buttons=buttons),
     )
 
 
 async def send_course_message(
-    message: types.Message, category: str, subcategory: str
+    message: types.Message, category_id: str, nosology_id: str
 ) -> types.Message | SendMessage:
     recommended_courses: list[Course] = await database.find_courses(
-        category=category, nosology=subcategory
+        category_id=category_id, nosology_id=nosology_id
     )
+    logger.info("recommended_courses=%s", recommended_courses)
     buttons = []
     for course in sorted(recommended_courses, key=lambda item: item.Course):
         buttons.append(

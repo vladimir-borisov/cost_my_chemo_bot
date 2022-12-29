@@ -1,6 +1,5 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Command, Text
-from pydantic import UUID4
 
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.db import DB
@@ -42,12 +41,28 @@ async def weight_invalid(message: types.Message) -> bool:
     return not message.text.isdigit()
 
 
+async def category_valid(callback: types.CallbackQuery) -> bool:
+    return bool(
+        [
+            category
+            for category in database.categories
+            if callback.data == category.categoryid
+        ]
+    )
+
+
 async def category_invalid(callback: types.CallbackQuery) -> bool:
-    return callback.data not in database.categories
+    return bool(
+        [
+            category
+            for category in database.categories
+            if callback.data == category.categoryid
+        ]
+    )
 
 
 async def nosology_valid(callback: types.CallbackQuery) -> bool:
-    nosology_id = UUID4(callback.data)
+    nosology_id = callback.data
     return bool(
         [
             nosology
@@ -58,7 +73,7 @@ async def nosology_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def nosology_invalid(callback: types.CallbackQuery) -> bool:
-    nosology_id = UUID4(callback.data)
+    nosology_id = callback.data
     return bool(
         [
             nosology
@@ -74,14 +89,10 @@ async def course_valid(callback: types.CallbackQuery) -> bool:
     state = dp.current_state(user=callback.from_user.id, chat=message.chat.id)
     state_data = await parse_state(state=state)
     filtered_courses = await database.find_courses(
-        category=state_data.category,
-        nosology=state_data.subcategory,
+        category_id=state_data.category_id,
+        nosology_id=state_data.nosology_id,
     )
-    try:
-        course_id = UUID4(callback.data)
-    except ValueError:
-        return False
-
+    course_id = callback.data
     filtered_courses = [
         course for course in filtered_courses if course.Courseid == course_id
     ]
@@ -98,14 +109,10 @@ async def course_invalid(callback: types.CallbackQuery) -> bool:
     state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
     data = await parse_state(state=state)
     filtered_courses = await database.find_courses(
-        category=data.category, nosology=data.subcategory
+        category_id=data.category_id, nosology_id=data.nosology_id
     )
 
-    try:
-        course_id = UUID4(callback.data)
-    except ValueError:
-        return True
-
+    course_id = callback.data
     filtered_courses = [
         course for course in filtered_courses if course.Courseid == course_id
     ]
