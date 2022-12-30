@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: int = Field(logging.INFO)
     BOT_MODE: BotMode = BotMode.POLLING
     STATE_STORAGE_PATH: FilePath = "storage.json"
+    SET_COMMANDS: bool = False
 
     class Config:
         env_file = ".env"
@@ -45,4 +46,3 @@ SETTINGS = Settings()
 WEBHOOK_SETTINGS = None
 if SETTINGS.BOT_MODE is BotMode.WEBHOOK:
     WEBHOOK_SETTINGS = WebhookSettings()
-    print(WEBHOOK_SETTINGS.webhook_url)

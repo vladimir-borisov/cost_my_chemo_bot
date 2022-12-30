@@ -17,6 +17,7 @@ pydantic = "^1.10.2"
 python-dotenv = "^0.21.0"
 httpx = "^0.23.1"
 functions-framework = "^3.3.0"
+google-cloud-firestore = "^2.7.3"
 
 
 [tool.poetry.group.dev.dependencies]
