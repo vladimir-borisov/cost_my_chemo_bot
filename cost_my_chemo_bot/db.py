@@ -192,6 +192,20 @@ class DB:
 
         raise NosologyNotFound(f"no such nosology: {nosology_id}")
 
+    async def find_nosologies_by_category_id(self, category_id: str) -> list[Nosology]:
+        courses = [
+            course for course in self.courses if course.categoryid == category_id
+        ]
+        return [
+            nosology
+            for nosology in self.nosologies
+            if nosology.nosologyid in [course.nosologyid1 for course in courses]
+            or nosology.nosologyid in [course.nosologyid2 for course in courses]
+            or nosology.nosologyid in [course.nosologyid3 for course in courses]
+            or nosology.nosologyid in [course.nosologyid4 for course in courses]
+            or nosology.nosologyid in [course.nosologyid5 for course in courses]
+        ]
+
 
 if __name__ == "__main__":
     db = DB()
@@ -199,3 +213,9 @@ if __name__ == "__main__":
     print(db.courses)
     print(db.categories)
     print(db.nosologies)
+    print(db.categories[0].categoryid)
+    print(
+        asyncio.run(
+            db.find_nosologies_by_category_id(category_id=db.categories[0].categoryid)
+        )
+    )

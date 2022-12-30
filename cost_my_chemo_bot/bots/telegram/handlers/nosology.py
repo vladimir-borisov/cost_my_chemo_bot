@@ -31,7 +31,11 @@ async def process_nosology(
 @dispatcher.dp.callback_query_handler(filters.nosology_invalid, state=Form.nosology)
 async def process_nosology_invalid(message: types.Message, state: FSMContext):
     buttons = []
-    for nosology in sorted(database.nosologies, key=lambda item: item.nosologyName):
+    data = await parse_state(state=state)
+    nosologies = await database.find_nosologies_by_category_id(
+        category_id=data.category_id
+    )
+    for nosology in sorted(nosologies, key=lambda item: item.nosologyName):
         buttons.append(
             types.InlineKeyboardButton(
                 text=nosology.nosologyName,

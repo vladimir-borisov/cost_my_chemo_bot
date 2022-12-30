@@ -67,7 +67,11 @@ async def send_nosology_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
     buttons = []
-    for nosology in sorted(database.nosologies, key=lambda item: item.nosologyName):
+    data = await parse_state(state=state)
+    nosologies = await database.find_nosologies_by_category_id(
+        category_id=data.category_id
+    )
+    for nosology in sorted(nosologies, key=lambda item: item.nosologyName):
         buttons.append(
             types.InlineKeyboardButton(
                 text=nosology.nosologyName,

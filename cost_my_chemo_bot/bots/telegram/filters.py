@@ -65,12 +65,15 @@ async def category_invalid(callback: types.CallbackQuery) -> bool:
 
 async def nosology_valid(callback: types.CallbackQuery) -> bool:
     nosology_id = callback.data
+    message = callback.message
+    dp = Dispatcher.get_current()
+    state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
+    data = await parse_state(state=state)
+    nosologies = await database.find_nosologies_by_category_id(
+        category_id=data.category_id
+    )
     return bool(
-        [
-            nosology
-            for nosology in database.nosologies
-            if nosology.nosologyid == nosology_id
-        ]
+        [nosology for nosology in nosologies if nosology.nosologyid == nosology_id]
     )
 
 
@@ -78,12 +81,15 @@ async def nosology_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
     nosology_id = callback.data
+    message = callback.message
+    dp = Dispatcher.get_current()
+    state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
+    data = await parse_state(state=state)
+    nosologies = await database.find_nosologies_by_category_id(
+        category_id=data.category_id
+    )
     return bool(
-        [
-            nosology
-            for nosology in database.nosologies
-            if nosology.nosologyid == nosology_id
-        ]
+        [nosology for nosology in nosologies if nosology.nosologyid == nosology_id]
     )
 
 

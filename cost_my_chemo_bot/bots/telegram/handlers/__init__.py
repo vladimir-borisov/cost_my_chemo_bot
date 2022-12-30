@@ -4,7 +4,7 @@ from .category import process_category, process_category_invalid
 from .course import process_course, process_course_invalid
 from .height import process_height, process_height_invalid
 from .lead import process_lead
-from .subcategory import process_nosology, process_nosology_invalid
+from .nosology import process_nosology, process_nosology_invalid
 from .weight import process_weight, process_weight_invalid
 from .welcome import welcome_handler
 
