@@ -22,7 +22,7 @@ async def on_startup(dp):
     )
     database = DB()
     await database.load_db()
-    if SETTINGS.BOT_MODE is BotMode.WEBHOOK:
+    if SETTINGS.BOT_MODE is BotMode.WEBHOOK and WEBHOOK_SETTINGS.SET_WEBHOOK:
         logger.info(
             "set webhook: %s", await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
         )
@@ -31,7 +31,7 @@ async def on_startup(dp):
 async def on_shutdown(dp):
     logger.warning("Shutting down...")
 
-    if SETTINGS.BOT_MODE is BotMode.WEBHOOK:
+    if SETTINGS.BOT_MODE is BotMode.WEBHOOK and WEBHOOK_SETTINGS.SET_WEBHOOK:
         await bot.delete_webhook()
 
     await dp.storage.close()

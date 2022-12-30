@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
 class WebhookSettings(BaseSettings):
     # webhook settings
+    SET_WEBHOOK: bool = True
     WEBHOOK_HOST: str = "http://0.0.0.0:8080"
     WEBHOOK_PATH: str = "/api"
 
