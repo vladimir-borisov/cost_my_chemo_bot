@@ -11,14 +11,15 @@ from cost_my_chemo_bot.bots.telegram import messages
 from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
-from cost_my_chemo_bot.bots.telegram.storage import FirestoreStorage
+from cost_my_chemo_bot.bots.telegram.storage import FirestoreStorage, GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB, Course
 
 logger = logging.getLogger(__name__)
 
 bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-storage = FirestoreStorage()
+storage = GcloudStorage()
+# storage = FirestoreStorage()
 dp = Dispatcher(bot, storage=storage)
 database = DB()
 

@@ -9,5 +9,5 @@ gcloud functions deploy cost-my-chemo-bot \
     --allow-unauthenticated \
     --env-vars-file=cloud_env.yaml \
     --min-instances=0 \
-    --max-instances=1 \
-    --memory=128Mi
+    --max-instances=10 \
+    --memory=200Mi

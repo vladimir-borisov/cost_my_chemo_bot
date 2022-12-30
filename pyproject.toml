@@ -18,6 +18,7 @@ python-dotenv = "^0.21.0"
 httpx = "^0.23.1"
 functions-framework = "^3.3.0"
 google-cloud-firestore = "^2.7.3"
+gcloud-aio-storage = "^8.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
