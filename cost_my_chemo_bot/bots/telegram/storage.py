@@ -434,7 +434,7 @@ class GcloudStorage(BaseStorage):
         data = await self.download_state(chat=chat, user=user)
         if data == {"state": None, "data": {}, "bucket": {}}:
             await self.storage.delete(
-                bucket_name=self.bucket.name, blob_name=f"{chat}/{user}.json"
+                bucket=self.bucket.name, object_name=f"{chat}/{user}.json"
             )
 
 

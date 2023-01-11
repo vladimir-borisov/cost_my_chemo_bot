@@ -34,7 +34,15 @@ async def register_handlers(dp: Dispatcher):
     dp.register_message_handler(
         welcome_handler,
         CommandStart(),
+        state="*",
+    )
+    dp.register_message_handler(
+        welcome_handler,
         filters.welcome_message,
+        state="*",
+    )
+    dp.register_message_handler(
+        welcome_handler,
         filters.welcome_message_text,
         state="*",
     )
@@ -91,6 +99,20 @@ async def register_handlers(dp: Dispatcher):
     )
 
 
+async def init_bot() -> Dispatcher:
+    logging.basicConfig(level=logging.DEBUG)
+    database = DB()
+    await database.load_db()
+    bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
+    storage = GcloudStorage()
+    dp = Dispatcher(bot, storage=storage)
+    Bot.set_current(dp.bot)
+    Dispatcher.set_current(dp)
+
+    await register_handlers(dp)
+    return dp
+
+
 async def process_event(event) -> dict:
     """
     Converting an AWS Lambda event to an update and handling that
@@ -99,16 +121,8 @@ async def process_event(event) -> dict:
 
     logging.debug("Update: " + str(event))
 
-    bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-    storage = GcloudStorage()
-    # storage = FirestoreStorage()
-    dp = Dispatcher(bot, storage=storage)
-    Bot.set_current(dp.bot)
-    Dispatcher.set_current(dp)
-    await register_handlers(dp)
-    Bot.set_current(dp.bot)
-    database = DB()
-    await database.load_db()
+    dp = await init_bot()
+
     update = types.Update.to_object(event)
     print(f"new_update={update}")
     results = await dp.process_update(update)
