@@ -350,12 +350,11 @@ class GcloudStorage(BaseStorage):
         self, *, chat: str | int | None = None, user: str | int | None = None
     ) -> dict:
         async with self.get_storage() as storage:
-            async with self.lock(storage, chat=chat, user=user):
-                user_blob = await storage.get_bucket(
-                    bucket_name=self.bucket_name
-                ).get_blob(blob_name=f"{chat}/{user}.json")
-                blob_content = await user_blob.download()
-                return json.loads(blob_content)
+            user_blob = await storage.get_bucket(bucket_name=self.bucket_name).get_blob(
+                blob_name=f"{chat}/{user}.json"
+            )
+            blob_content = await user_blob.download()
+            return json.loads(blob_content)
 
     async def upload_state(
         self,
