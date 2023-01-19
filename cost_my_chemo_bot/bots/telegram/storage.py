@@ -246,6 +246,7 @@ class FirestoreStorage(BaseStorage):
         items = db.collection(STATE).stream()
         return [(int(item.get("chat")), int(item.get("user"))) async for item in items]
 
+
 class LockTimeoutError(Exception):
     pass
 
@@ -269,7 +270,7 @@ class GcloudStorage(BaseStorage):
 
     async def close(self):
         ...
-        
+
     async def wait_closed(self):
         ...
 
