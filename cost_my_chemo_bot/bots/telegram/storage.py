@@ -4,6 +4,7 @@ This module has mongo storage for finite-state machine
 """
 
 import asyncio
+import contextlib
 import json
 import typing
 from typing import AnyStr, Dict, List, Optional, Tuple, Union
@@ -18,9 +19,9 @@ except ModuleNotFoundError as e:
     warnings.warn("Install motor with `pip install google-cloud-firestore`")
     raise e
 
+from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher.storage import BaseStorage
 from gcloud.aio.storage import Bucket, Storage
-from aiogram.contrib.fsm_storage.files import JSONStorage
 
 # from aiogram.contrib.fsm_storage.mongo import MongoStorage
 
@@ -245,6 +246,9 @@ class FirestoreStorage(BaseStorage):
         items = db.collection(STATE).stream()
         return [(int(item.get("chat")), int(item.get("user"))) async for item in items]
 
+class LockTimeoutError(Exception):
+    pass
+
 
 class GcloudStorage(BaseStorage):
     """
@@ -253,27 +257,57 @@ class GcloudStorage(BaseStorage):
     This type of storage is not recommended for usage in bots, because you will lost all states after restarting.
     """
 
-    async def wait_closed(self):
-        while self.session is not None and not self.session.closed:
-            await self.session.close()
-            await asyncio.sleep(0.1)
-
-    async def close(self):
-        await self.storage.close()
-        await self.session.close()
-
-    def __init__(self, bucket_name: str = "cost-my-chemo-bot-storage"):
-        self.session: aiohttp.ClientSession | None = None
+    def __init__(
+        self,
+        session: aiohttp.ClientSession | None = None,
+        bucket_name: str = "cost-my-chemo-bot-storage",
+    ):
+        self.session = session
         self.storage: Storage | None = None
         self.bucket: Bucket | None = None
         self.bucket_name = bucket_name
+
+    async def close(self):
+        ...
+        
+    async def wait_closed(self):
+        ...
+
+    @contextlib.asynccontextmanager
+    async def lock(
+        self,
+        *,
+        chat: str | int | None = None,
+        user: str | int | None = None,
+        timeout: int = 30,
+    ):
+        lock_name = f"{chat}/{user}.lock"
+        locked = False
+        while timeout > 0 or not locked:
+            try:
+                await self.storage.upload(
+                    self.bucket.name,
+                    lock_name,
+                    b"",
+                    headers={"x-goog-if-generation-match": "0"},
+                )
+                yield
+                await self.storage.delete(self.bucket.name, lock_name)
+                break
+            except aiohttp.ClientResponseError as e:
+                if e.status == 412:
+                    await asyncio.sleep(5)
+                    timeout -= 1
+                    continue
+                raise
+        raise LockTimeoutError()
 
     async def get_storage(self) -> Storage:
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession()
 
         if self.storage is None:
-            self.storage = Storage()
+            self.storage = Storage(session=self.session)
 
         if self.bucket is None:
             self.bucket = self.storage.get_bucket(bucket_name=self.bucket_name)
@@ -285,11 +319,12 @@ class GcloudStorage(BaseStorage):
         storage = await self.get_storage()
 
         if not await self.bucket.blob_exists(blob_name=f"{chat_id}/{user_id}.json"):
-            await storage.upload(
-                self.bucket.name,
-                f"{chat_id}/{user_id}.json",
-                json.dumps({"state": None, "data": {}, "bucket": {}}),
-            )
+            async with self.lock(chat=chat, user=user):
+                await storage.upload(
+                    self.bucket.name,
+                    f"{chat_id}/{user_id}.json",
+                    json.dumps({"state": None, "data": {}, "bucket": {}}),
+                )
 
         return chat_id, user_id
 
@@ -297,9 +332,10 @@ class GcloudStorage(BaseStorage):
         self, *, chat: str | int | None = None, user: str | int | None = None
     ) -> dict:
         await self.get_storage()
-        user_blob = await self.bucket.get_blob(blob_name=f"{chat}/{user}.json")
-        blob_content = await user_blob.download()
-        return json.loads(blob_content)
+        async with self.lock(chat=chat, user=user):
+            user_blob = await self.bucket.get_blob(blob_name=f"{chat}/{user}.json")
+            blob_content = await user_blob.download()
+            return json.loads(blob_content)
 
     async def upload_state(
         self,
@@ -309,8 +345,9 @@ class GcloudStorage(BaseStorage):
         data: dict,
     ):
         await self.get_storage()
-        user_blob = await self.bucket.get_blob(blob_name=f"{chat}/{user}.json")
-        await user_blob.upload(json.dumps(data))
+        async with self.lock(chat=chat, user=user):
+            user_blob = await self.bucket.get_blob(blob_name=f"{chat}/{user}.json")
+            await user_blob.upload(json.dumps(data))
 
     async def get_state(
         self,
@@ -429,13 +466,14 @@ class GcloudStorage(BaseStorage):
         await self.upload_state(chat=chat, user=user, data=data)
 
     async def _cleanup(self, chat, user):
-        storage = await self.get_storage()
+        await self.get_storage()
         chat, user = await self.resolve_address(chat=chat, user=user)
         data = await self.download_state(chat=chat, user=user)
         if data == {"state": None, "data": {}, "bucket": {}}:
-            await self.storage.delete(
-                bucket=self.bucket.name, object_name=f"{chat}/{user}.json"
-            )
+            async with self.lock(chat=chat, user=user):
+                await self.storage.delete(
+                    bucket=self.bucket.name, object_name=f"{chat}/{user}.json"
+                )
 
 
 if __name__ == "__main__":

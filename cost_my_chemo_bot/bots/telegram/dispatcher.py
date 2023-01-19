@@ -2,7 +2,6 @@ import logging
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from aiogram.types import ParseMode
@@ -11,7 +10,7 @@ from cost_my_chemo_bot.bots.telegram import messages
 from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
-from cost_my_chemo_bot.bots.telegram.storage import FirestoreStorage, GcloudStorage
+from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB, Course
 

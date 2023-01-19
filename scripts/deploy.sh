@@ -1,6 +1,7 @@
 #!env /bin/bash
 set -euxo pipefail
 gcloud functions deploy cost-my-chemo-bot \
+    --project=cost-my-chemo-bot \
     --gen2 \
     --runtime=python310 \
     --region=europe-west1 \

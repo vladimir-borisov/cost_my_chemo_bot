@@ -5,6 +5,7 @@ import logging
 import functions_framework
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher.filters import Command, CommandStart, Text
+from aiohttp import ClientSession
 from flask import Request
 
 from cost_my_chemo_bot.bots.telegram import filters
@@ -99,12 +100,12 @@ async def register_handlers(dp: Dispatcher):
     )
 
 
-async def init_bot() -> Dispatcher:
+async def init_bot(session: ClientSession | None = None) -> Dispatcher:
     logging.basicConfig(level=logging.DEBUG)
     database = DB()
     await database.load_db()
     bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-    storage = GcloudStorage()
+    storage = GcloudStorage(session=session)
     dp = Dispatcher(bot, storage=storage)
     Bot.set_current(dp.bot)
     Dispatcher.set_current(dp)

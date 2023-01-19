@@ -1,13 +1,20 @@
-.DEFAULT_GOAL := check_webhook
+.DEFAULT_GOAL := help
 
-deploy:
+help:
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m -%s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+format: ## Black + isort
+	black .
+	isort .
+
+deploy:  ## Deploy google cloud function
 	bash scripts/deploy.sh
 
-check_webhook:
+check_webhook:  ## Print this bot webhook
 	bash scripts/check_webhook.sh
 
-set_webhook:
+set_webhook:  ## Set this bot webhook to google cloud function
 	bash scripts/set_webhook.sh
 
-set_webhook_local:
+set_webhook_local:  ## Set webhook to local
 	bash scripts/set_webhook_local.sh
