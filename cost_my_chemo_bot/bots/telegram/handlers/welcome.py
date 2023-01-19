@@ -23,6 +23,13 @@ async def welcome_handler(
     else:
         message = callback_or_message
 
+    logger.info(
+        "Releasing lock",
+    )
+    await dispatcher.dp.storage.release_lock(
+        chat=message.chat.id, user=message.from_user.id
+    )
+
     current_state = await state.get_state()
     if current_state is not None:
         logger.info("Cancelling state %r", current_state)

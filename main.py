@@ -100,12 +100,11 @@ async def register_handlers(dp: Dispatcher):
     )
 
 
-async def init_bot(session: ClientSession | None = None) -> Dispatcher:
-    logging.basicConfig(level=logging.DEBUG)
+async def init_bot() -> Dispatcher:
     database = DB()
     await database.load_db()
     bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-    storage = GcloudStorage(session=session)
+    storage = GcloudStorage()
     dp = Dispatcher(bot, storage=storage)
     Bot.set_current(dp.bot)
     Dispatcher.set_current(dp)
@@ -149,7 +148,7 @@ def process_webhook(request: Request):
         Response object using `make_response`
         <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
     """
-
+    logging.getLogger().setLevel(level=logging.INFO)
     request_json = request.get_json(silent=True)
     if request_json is None:
         request_json = {}
