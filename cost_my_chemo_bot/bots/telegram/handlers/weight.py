@@ -1,15 +1,14 @@
-import logging
-
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
+from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters, messages
 from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import Form
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 @dispatcher.dp.message_handler(filters.weight_valid, state=Form.weight)

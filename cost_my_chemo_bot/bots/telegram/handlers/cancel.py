@@ -1,14 +1,13 @@
-import logging
-
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command, Text
 from aiogram.dispatcher.webhook import SendMessage
+from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, messages
 from cost_my_chemo_bot.bots.telegram.send import send_message
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 @dispatcher.dp.callback_query_handler(

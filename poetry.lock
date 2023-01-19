@@ -1057,6 +1057,18 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
+name = "logfmt-logger"
+version = "0.1.2"
+description = "Logger following the logfmt format with sound defaults"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "logfmt-logger-0.1.2.tar.gz", hash = "sha256:e4dae26877e3245ca68250c911a397f850bd1dc62f900e38e79a884f4a425772"},
+    {file = "logfmt_logger-0.1.2-py3-none-any.whl", hash = "sha256:d696c3706168f4b060564a701a25816d95394595490246735f439688597143ad"},
+]
+
+[[package]]
 name = "magic-filter"
 version = "1.0.9"
 description = "This package provides magic filter based on dynamic attribute getter"
@@ -1756,4 +1768,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a287e61aa047f228498ed895a90e79b14bfc1bcd7fe565149329a50e56ba33a3"
+content-hash = "eae002937288cdf62c8b06432bd234647641bede986be8b70b263dabeef02917"

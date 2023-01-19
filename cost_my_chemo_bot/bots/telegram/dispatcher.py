@@ -1,10 +1,9 @@
-import logging
-
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from aiogram.types import ParseMode
+from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import messages
 from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
@@ -14,7 +13,7 @@ from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB, Course
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
 storage = GcloudStorage()

@@ -1,12 +1,11 @@
 import asyncio
 import json
-import logging
 
 import functions_framework
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher.filters import Command, CommandStart, Text
-from aiohttp import ClientSession
 from flask import Request
+from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import filters
 from cost_my_chemo_bot.bots.telegram.handlers import (
@@ -29,6 +28,8 @@ from cost_my_chemo_bot.bots.telegram.state import Form
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB
+
+logger = getLogger(__name__)
 
 
 async def register_handlers(dp: Dispatcher):
@@ -119,15 +120,15 @@ async def process_event(event) -> dict:
     update.
     """
 
-    logging.debug("Update: " + str(event))
+    logger.info("Update: " + str(event))
 
     dp = await init_bot()
 
     update = types.Update.to_object(event)
-    print(f"new_update={update}")
+    logger.info(f"new_update={update}")
     results = await dp.process_update(update)
     results = [json.loads(r.get_web_response().body) for r in results]
-    print(f"results={results}")
+    logger.info(f"results={results}")
     if not results:
         result = {}
     else:
@@ -148,7 +149,6 @@ def process_webhook(request: Request):
         Response object using `make_response`
         <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
     """
-    logging.getLogger().setLevel(level=logging.INFO)
     request_json = request.get_json(silent=True)
     if request_json is None:
         request_json = {}

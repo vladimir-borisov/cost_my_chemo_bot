@@ -1,9 +1,9 @@
-import logging
 import typing
 
 from aiogram import types
+from logfmt_logger import getLogger
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 def get_keyboard_markup(

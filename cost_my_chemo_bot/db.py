@@ -1,15 +1,15 @@
 import asyncio
 import decimal
-import logging
 import typing
 import unicodedata
 
 from httpx import AsyncClient
-from pydantic import BaseModel, Field, ValidationError, validator
+from logfmt_logger import getLogger
+from pydantic import BaseModel, ValidationError, validator
 
 from cost_my_chemo_bot.config import SETTINGS
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class CategoryNotFound(Exception):

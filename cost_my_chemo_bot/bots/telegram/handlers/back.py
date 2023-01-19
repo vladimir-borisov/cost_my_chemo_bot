@@ -1,13 +1,12 @@
-import logging
-
-from aiogram import Dispatcher, types
+from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
+from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 @dispatcher.dp.callback_query_handler(filters.back_valid, state="*")
@@ -16,7 +15,6 @@ async def back_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
     logger.info("state=%s", state)
-    local_dispatcher = callback_or_message.bot
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:

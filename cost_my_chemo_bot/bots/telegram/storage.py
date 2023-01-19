@@ -6,7 +6,6 @@ This module has mongo storage for finite-state machine
 import asyncio
 import contextlib
 import json
-import logging
 import typing
 from typing import AnyStr, Dict, Generator, List, Optional, Tuple, Union
 
@@ -22,14 +21,13 @@ except ModuleNotFoundError as e:
 
 from aiogram.dispatcher.storage import BaseStorage
 from gcloud.aio.storage import Storage
-
-# from aiogram.contrib.fsm_storage.mongo import MongoStorage
+from logfmt_logger import getLogger
 
 STATE = "aiogram_state"
 DATA = "aiogram_data"
 BUCKET = "aiogram_bucket"
 COLLECTIONS = (STATE, DATA, BUCKET)
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class FirestoreStorage(BaseStorage):

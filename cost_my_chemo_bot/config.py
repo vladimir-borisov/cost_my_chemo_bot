@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     ONCO_MEDCONSULT_API_LOGIN: str
     ONCO_MEDCONSULT_API_PASSWORD: SecretStr
 
+    BITRIX_URL: HttpUrl = (
+        "https://b24-f64ofq.bitrix24.ru/rest/1/fy0jdv5omjbw21w6/crm.lead.add.jsonK"
+    )
+
     TELEGRAM_BOT_TOKEN: str
     LOG_LEVEL: int = Field(logging.INFO)
     BOT_MODE: BotMode = BotMode.POLLING
