@@ -48,5 +48,11 @@ async def back_handler(
                 category_id=state_data.category_id,
                 nosology_id=state_data.nosology_id,
             )
-        case Form.lead.state:
-            return await dispatcher.send_lead_message(message=message)
+        case Form.first_name.state:
+            return await dispatcher.send_first_name_message(message=message)
+        case Form.last_name.state:
+            return await dispatcher.send_last_name_message(message=message)
+        case Form.email.state:
+            return await dispatcher.send_email_message(message=message)
+        case Form.phone_number.state:
+            return await dispatcher.send_phone_number_message(message=message)
