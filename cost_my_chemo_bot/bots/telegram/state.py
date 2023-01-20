@@ -2,7 +2,7 @@ import math
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class StateData(BaseModel):
@@ -11,6 +11,10 @@ class StateData(BaseModel):
     category_id: str | None = None
     nosology_id: str | None = None
     course_id: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: EmailStr | None = None
+    phone_number: str | None = None
 
     @property
     def bsa(self) -> float:
@@ -25,7 +29,10 @@ class Form(StatesGroup):
     category = State()
     nosology = State()
     course = State()
-    lead = State()
+    first_name = State()
+    last_name = State()
+    email = State()
+    phone_number = State()
 
 
 async def parse_state(state: FSMContext) -> StateData:

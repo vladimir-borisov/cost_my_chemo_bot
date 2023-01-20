@@ -131,3 +131,54 @@ async def send_lead_message(
         ),
         parse_mode=ParseMode.MARKDOWN,
     )
+
+
+async def send_first_name_message(
+    message: types.Message, add_text: str | None = None
+) -> types.Message | SendMessage:
+    text = ""
+    if add_text is None:
+        add_text = ""
+    text = md.text(add_text, md.text(messages.LEAD_FIRST_NAME), sep="\n")
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=types.ReplyKeyboardRemove(),
+    )
+
+
+async def send_last_name_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    text = messages.LEAD_LAST_NAME
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=types.ReplyKeyboardRemove(),
+    )
+
+
+async def send_email_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    text = messages.LEAD_EMAIL
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=types.ReplyKeyboardRemove(),
+    )
+
+
+async def send_phone_number_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    text = messages.LEAD_PHONE_NUMBER
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=types.ReplyKeyboardRemove(),
+    )
