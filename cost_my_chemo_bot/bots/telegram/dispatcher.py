@@ -136,7 +136,6 @@ async def send_lead_message(
 async def send_first_name_message(
     message: types.Message, add_text: str | None = None
 ) -> types.Message | SendMessage:
-    text = ""
     if add_text is None:
         add_text = ""
     text = md.text(add_text, md.text(messages.LEAD_FIRST_NAME), sep="\n")
@@ -145,6 +144,7 @@ async def send_first_name_message(
         chat_id=message.chat.id,
         text=text,
         reply_markup=types.ReplyKeyboardRemove(),
+        parse_mode=ParseMode.MARKDOWN,
     )
 
 
@@ -156,7 +156,7 @@ async def send_last_name_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=get_keyboard_markup(),
     )
 
 
@@ -168,7 +168,19 @@ async def send_email_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=get_keyboard_markup(),
+    )
+
+
+async def send_email_invalid_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    text = messages.LEAD_EMAIL_WRONG
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=get_keyboard_markup(),
     )
 
 
@@ -180,5 +192,5 @@ async def send_phone_number_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=get_keyboard_markup(),
     )

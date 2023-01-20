@@ -11,13 +11,13 @@ from cost_my_chemo_bot.bots.telegram import filters
 from cost_my_chemo_bot.bots.telegram.handlers import (
     back_handler,
     cancel_handler,
+    init_lead_handlers,
     process_category,
     process_category_invalid,
     process_course,
     process_course_invalid,
     process_height,
     process_height_invalid,
-    process_lead,
     process_nosology,
     process_nosology_invalid,
     process_weight,
@@ -82,10 +82,6 @@ async def register_handlers(dp: Dispatcher):
         process_height_invalid, filters.height_invalid, state=Form.height
     )
 
-    dp.register_message_handler(
-        process_lead, state=Form.lead, content_types=types.ContentType.CONTACT
-    )
-
     dp.register_callback_query_handler(
         process_nosology, filters.nosology_valid, state=Form.nosology
     )
@@ -99,6 +95,8 @@ async def register_handlers(dp: Dispatcher):
     dp.register_message_handler(
         process_weight_invalid, filters.weight_invalid, state=Form.weight
     )
+
+    init_lead_handlers(dp)
 
 
 async def init_bot() -> Dispatcher:

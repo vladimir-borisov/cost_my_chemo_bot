@@ -1,6 +1,7 @@
 import httpx
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters, messages
@@ -33,37 +34,46 @@ async def save_lead(message: types.Message, state: FSMContext):
         logger.info("save lead: %s", resp.text)
 
 
-async def process_first_name(message: types.Message, state: FSMContext):
+async def process_first_name(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(first_name=message.text)
     await state.set_state(Form.last_name)
     return await dispatcher.send_last_name_message(message=message)
 
 
-async def process_last_name(message: types.Message, state: FSMContext):
+async def process_last_name(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(last_name=message.text)
     await state.set_state(Form.email)
     return await dispatcher.send_email_message(message=message)
 
 
-async def process_email(message: types.Message, state: FSMContext):
+async def process_email(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
     await state.update_data(email=message.text)
     await state.set_state(Form.phone_number)
     return await dispatcher.send_phone_number_message(message=message)
 
 
-async def process_email_invalid(message: types.Message, state: FSMContext):
+async def process_email_invalid(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
+    return await dispatcher.send_email_invalid_message(message=message)
+
+
+async def process_phone_number(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
+    await state.update_data(phone_number=message.text)
+    await save_lead(message=message, state=state)
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
-        text=messages.LEAD_EMAIL_WRONG,
-    )
-
-
-async def process_phone_number(message: types.Message, state: FSMContext):
-    await state.update_data(phone_number=message.text)
-    await save_lead(message=message, state=state)
-    return await message.reply(
-        messages.THANKS, reply_markup=types.ReplyKeyboardRemove()
+        text=messages.THANKS,
+        reply_markup=types.ReplyKeyboardRemove(),
     )
 
 
