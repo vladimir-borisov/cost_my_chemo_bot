@@ -1,5 +1,6 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Command, Text
+from pydantic import EmailError, EmailStr
 
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.db import DB
@@ -134,3 +135,23 @@ async def course_invalid(callback: types.CallbackQuery) -> bool:
 
     assert len(filtered_courses) == 1
     return False
+
+
+async def email_valid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
+    try:
+        return bool(EmailStr.validate(message.text))
+    except EmailError:
+        return False
+
+
+async def email_invalid(message: types.Message) -> bool:
+    if message.is_command():
+        return True
+
+    try:
+        return not bool(EmailStr.validate(message.text))
+    except EmailError:
+        return True

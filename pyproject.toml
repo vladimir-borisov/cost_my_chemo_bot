@@ -13,7 +13,7 @@ packages = [{include = "cost_my_chemo_bot"}]
 python = "^3.10"
 gspread-asyncio = "^1.7.1"
 aiogram = "^2.23.1"
-pydantic = "^1.10.2"
+pydantic = {version = "^1.10.4", extras = ["email"]}
 python-dotenv = "^0.21.0"
 httpx = "^0.23.1"
 functions-framework = "^3.3.0"

@@ -19,6 +19,7 @@ COURSE_WRONG = "Неверно выбран курс. Выберите курс 
 LEAD_FIRST_NAME = "Введите ваше имя"
 LEAD_LAST_NAME = "Введите вашу фамилию"
 LEAD_EMAIL = "Введите ваш email"
+LEAD_EMAIL_WRONG = "Неверно введен email. Введите email."
 LEAD_PHONE_NUMBER = "Введите ваш номер телефона"
 THANKS = "Спасибо!"
 

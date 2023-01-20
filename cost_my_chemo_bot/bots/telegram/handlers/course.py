@@ -44,7 +44,9 @@ async def process_course(
         course_price=course_price,
     )
     await state.set_state(Form.first_name)
-    return await dispatcher.send_first_name_message(message=message, add_text=course_text)
+    return await dispatcher.send_first_name_message(
+        message=message, add_text=course_text
+    )
 
 
 @dispatcher.dp.callback_query_handler(filters.course_invalid, state=Form.course)

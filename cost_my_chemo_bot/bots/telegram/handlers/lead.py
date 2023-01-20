@@ -3,7 +3,8 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import dispatcher, messages
+from cost_my_chemo_bot.bots.telegram import dispatcher, filters, messages
+from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.config import SETTINGS
 
@@ -50,14 +51,27 @@ async def process_email(message: types.Message, state: FSMContext):
     return await dispatcher.send_phone_number_message(message=message)
 
 
+async def process_email_invalid(message: types.Message, state: FSMContext):
+    return await send_message(
+        dispatcher.bot,
+        chat_id=message.chat.id,
+        text=messages.LEAD_EMAIL_WRONG,
+    )
+
+
 async def process_phone_number(message: types.Message, state: FSMContext):
     await state.update_data(phone_number=message.text)
     await save_lead(message=message, state=state)
-    await message.reply(messages.THANKS, reply_markup=types.ReplyKeyboardRemove())
+    return await message.reply(
+        messages.THANKS, reply_markup=types.ReplyKeyboardRemove()
+    )
 
 
 def init_handlers(dp: Dispatcher):
     dp.register_message_handler(process_first_name, state=Form.first_name)
     dp.register_message_handler(process_last_name, state=Form.last_name)
-    dp.register_message_handler(process_email, state=Form.email)
+    dp.register_message_handler(process_email, filters.email_valid, state=Form.email)
+    dp.register_message_handler(
+        process_email_invalid, filters.email_invalid, state=Form.email
+    )
     dp.register_message_handler(process_phone_number, state=Form.phone_number)
