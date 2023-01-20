@@ -70,6 +70,8 @@ async def register_handlers(dp: Dispatcher):
 
 
 async def init_bot() -> Dispatcher:
+    getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
+
     database = DB()
     await database.load_db()
     bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)

@@ -56,6 +56,9 @@ async def process_data_reenter(callback: types.CallbackQuery, state: FSMContext)
 
 
 def init_course_handlers(dp: Dispatcher):
+    dp.register_callback_query_handler(filters.course_valid, state=Form.course)
+    dp.register_callback_query_handler(filters.course_invalid, state=Form.course)
+
     dp.register_callback_query_handler(
         process_data_confirmation, filters.data_confirmed, state=Form.data_confirmation
     )
