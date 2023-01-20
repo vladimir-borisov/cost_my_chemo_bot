@@ -9,6 +9,11 @@ class BotMode(enum.Enum):
     WEBHOOK = "webhook"
 
 
+class StorageType(str, enum.Enum):
+    JSON = "json"
+    GCLOUD = "gcloud"
+
+
 class Settings(BaseSettings):
     ONCO_MEDCONSULT_API_URL: HttpUrl = "http://onco.medconsult.ru/onco/hs/MobHTTP/api"
     ONCO_MEDCONSULT_API_LOGIN: str
@@ -23,6 +28,8 @@ class Settings(BaseSettings):
     BOT_MODE: BotMode = BotMode.POLLING
     STATE_STORAGE_PATH: FilePath = "storage.json"
     SET_COMMANDS: bool = False
+
+    STORAGE_TYPE: StorageType = StorageType.JSON
 
     class Config:
         env_file = ".env"

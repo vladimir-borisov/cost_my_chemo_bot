@@ -1,10 +1,13 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Command, Text
+from logfmt_logger import getLogger
 from pydantic import EmailError, EmailStr
 
+from cost_my_chemo_bot.bots.telegram.keyboard import Buttons
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.db import DB
 
+logger = getLogger(__name__)
 database = DB()
 
 
@@ -12,6 +15,13 @@ welcome_callback = Text(equals=["start", "menu"], ignore_case=True)
 welcome_message = Command(commands=["start", "menu"])
 welcome_message_text = Text(equals=["start", "menu"], ignore_case=True)
 back_valid = Text(equals="back", ignore_case=True)
+
+
+async def initial_step_confirmed(callback: types.CallbackQuery) -> bool:
+    if callback.data == Buttons.YES.value.callback_data:
+        return True
+
+    return False
 
 
 async def height_valid(message: types.Message) -> bool:
@@ -53,7 +63,10 @@ async def category_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def category_invalid(callback: types.CallbackQuery) -> bool:
-    if callback.data in ("menu", "back"):
+    if callback.data in (
+        Buttons.MENU.value.callback_data,
+        Buttons.BACK.value.callback_data,
+    ):
         return False
 
     return not await category_valid(callback=callback)
@@ -74,7 +87,10 @@ async def nosology_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def nosology_invalid(callback: types.CallbackQuery) -> bool:
-    if callback.data in ("menu", "back"):
+    if callback.data in (
+        Buttons.MENU.value.callback_data,
+        Buttons.BACK.value.callback_data,
+    ):
         return False
 
     return not await nosology_valid(callback=callback)
@@ -101,10 +117,27 @@ async def course_valid(callback: types.CallbackQuery) -> bool:
 
 
 async def course_invalid(callback: types.CallbackQuery) -> bool:
-    if callback.data in ("menu", "back"):
+    if callback.data in (
+        Buttons.MENU.value.callback_data,
+        Buttons.BACK.value.callback_data,
+        Buttons.YES.value.callback_data,
+        Buttons.NEED_CORRECTION.value.callback_data,
+    ):
         return False
 
     return not await course_valid(callback=callback)
+
+
+async def data_confirmed(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.YES.value.callback_data
+
+
+async def data_reenter(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.NEED_CORRECTION.value.callback_data
+
+
+async def contacts_input(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.CONTACTS_INPUT.value.callback_data
 
 
 async def email_valid(message: types.Message) -> bool:
@@ -135,4 +168,7 @@ async def phone_number_valid(message: types.Message) -> bool:
 
 
 async def phone_number_invalid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return not await phone_number_valid(message)

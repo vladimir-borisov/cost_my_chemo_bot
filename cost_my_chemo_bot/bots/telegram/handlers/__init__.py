@@ -1,10 +1,12 @@
+from aiogram import Dispatcher
+
 from .back import back_handler
 from .cancel import cancel_handler
 from .category import process_category, process_category_invalid
-from .course import process_course, process_course_invalid
+from .course import init_course_handlers, process_course, process_course_invalid
 from .height import process_height, process_height_invalid
-from .lead import init_handlers as init_lead_handlers
 from .lead import (
+    init_lead_handlers,
     process_email,
     process_email_invalid,
     process_first_name,
@@ -13,7 +15,14 @@ from .lead import (
 )
 from .nosology import process_nosology, process_nosology_invalid
 from .weight import process_weight, process_weight_invalid
-from .welcome import welcome_handler
+from .welcome import init_welcome_handlers, welcome_handler
+
+
+def init_handlers(dp: Dispatcher):
+    init_lead_handlers(dp)
+    init_welcome_handlers(dp)
+    init_course_handlers(dp)
+
 
 __all__ = (
     "back_handler",

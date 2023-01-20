@@ -3,7 +3,7 @@ import json
 
 import functions_framework
 from aiogram import Bot, Dispatcher, types
-from aiogram.dispatcher.filters import Command, CommandStart, Text
+from aiogram.dispatcher.filters import Command, Text
 from flask import Request
 from logfmt_logger import getLogger
 
@@ -11,18 +11,15 @@ from cost_my_chemo_bot.bots.telegram import filters
 from cost_my_chemo_bot.bots.telegram.handlers import (
     back_handler,
     cancel_handler,
-    init_lead_handlers,
+    init_handlers,
     process_category,
     process_category_invalid,
-    process_course,
-    process_course_invalid,
     process_height,
     process_height_invalid,
     process_nosology,
     process_nosology_invalid,
     process_weight,
     process_weight_invalid,
-    welcome_handler,
 )
 from cost_my_chemo_bot.bots.telegram.state import Form
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
@@ -33,25 +30,6 @@ logger = getLogger(__name__)
 
 
 async def register_handlers(dp: Dispatcher):
-    dp.register_message_handler(
-        welcome_handler,
-        CommandStart(),
-        state="*",
-    )
-    dp.register_message_handler(
-        welcome_handler,
-        filters.welcome_message,
-        state="*",
-    )
-    dp.register_message_handler(
-        welcome_handler,
-        filters.welcome_message_text,
-        state="*",
-    )
-    dp.register_callback_query_handler(
-        welcome_handler, filters.welcome_callback, state="*"
-    )
-
     dp.register_callback_query_handler(
         cancel_handler, Text(equals=["stop"], ignore_case=True), state="*"
     )
@@ -66,14 +44,6 @@ async def register_handlers(dp: Dispatcher):
 
     dp.register_callback_query_handler(
         process_category_invalid, filters.category_invalid, state=Form.category
-    )
-
-    dp.register_callback_query_handler(
-        process_course, filters.course_valid, state=Form.course
-    )
-
-    dp.register_callback_query_handler(
-        process_course_invalid, filters.course_invalid, state=Form.course
     )
 
     dp.register_message_handler(process_height, filters.height_valid, state=Form.height)
@@ -96,7 +66,7 @@ async def register_handlers(dp: Dispatcher):
         process_weight_invalid, filters.weight_invalid, state=Form.weight
     )
 
-    init_lead_handlers(dp)
+    init_handlers(dp)
 
 
 async def init_bot() -> Dispatcher:

@@ -1,5 +1,3 @@
-import logging
-
 from aiogram import Dispatcher, executor, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from logfmt_logger import getLogger
@@ -7,9 +5,7 @@ from logfmt_logger import getLogger
 # to register all handlers in dispatcher
 import cost_my_chemo_bot.bots.telegram.handlers  # noqa
 from cost_my_chemo_bot.bots.telegram.dispatcher import bot, dp
-from cost_my_chemo_bot.bots.telegram.handlers.lead import (
-    init_handlers as init_lead_handlers,
-)
+from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS, BotMode
 from cost_my_chemo_bot.db import DB
 
@@ -17,7 +13,7 @@ logger = getLogger(__name__)
 
 
 async def on_startup(dp: Dispatcher):
-    init_lead_handlers(dp)
+    init_handlers(dp)
     if SETTINGS.SET_COMMANDS:
         await bot.set_my_commands(
             commands=[
@@ -50,7 +46,7 @@ async def on_shutdown(dp):
 
 if __name__ == "__main__":
     # Configure logging
-    logging.basicConfig(level=SETTINGS.LOG_LEVEL)
+    getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     dp.middleware.setup(LoggingMiddleware())
     if SETTINGS.BOT_MODE is BotMode.POLLING:
         executor.start_polling(

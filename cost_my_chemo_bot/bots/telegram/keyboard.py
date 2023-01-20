@@ -1,9 +1,22 @@
+import enum
 import typing
 
 from aiogram import types
 from logfmt_logger import getLogger
 
 logger = getLogger(__name__)
+
+
+class Buttons(enum.Enum):
+    YES = types.InlineKeyboardButton(text="Да", callback_data="yes")
+    NEED_CORRECTION = types.InlineKeyboardButton(
+        text="Нет, нужно исправить", callback_data="need_correction"
+    )
+    BACK = types.InlineKeyboardButton("Назад", callback_data="back")
+    MENU = types.InlineKeyboardButton("Menu", callback_data="menu")
+    CONTACTS_INPUT = types.InlineKeyboardButton(
+        "Ввести контакты", callback_data="contacts_input"
+    )
 
 
 def get_keyboard_markup(
@@ -29,13 +42,16 @@ def get_keyboard_markup(
                 continue
 
         keyboard_markup.row(
-            types.InlineKeyboardButton("Back", callback_data="back"),
-            types.InlineKeyboardButton("Menu", callback_data="menu"),
+            Buttons.BACK.value,
+            Buttons.MENU.value,
         )
         return keyboard_markup
 
     return types.ReplyKeyboardMarkup(
-        [*[[button] for button in buttons], ["Back", "Menu"]],
+        [
+            *[[button] for button in buttons],
+            [Buttons.BACK.value.text, Buttons.MENU.value.text],
+        ],
         one_time_keyboard=True,
         resize_keyboard=False,
         selective=True,

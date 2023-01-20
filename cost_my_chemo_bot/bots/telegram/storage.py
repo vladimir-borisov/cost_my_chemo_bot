@@ -300,6 +300,7 @@ class GcloudStorage(BaseStorage):
                     b"",
                     headers={"x-goog-if-generation-match": "0"},
                 )
+                locked = True
                 yield
             except aiohttp.ClientResponseError as e:
                 if e.status == 412:
@@ -313,12 +314,14 @@ class GcloudStorage(BaseStorage):
                         lock_meta,
                     )
                     await asyncio.sleep(5)
-                    timeout -= 1
+                    timeout -= 5
                     continue
                 raise
             finally:
-                await storage.delete(self.bucket_name, lock_name)
-                return
+                if locked:
+                    logger.info("Unlocking %s", lock_name)
+                    await storage.delete(self.bucket_name, lock_name)
+                    return
 
         raise LockTimeoutError()
 

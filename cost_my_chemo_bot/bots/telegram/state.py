@@ -24,11 +24,14 @@ class StateData(BaseModel):
 
 # States
 class Form(StatesGroup):
+    initial = State()
     height = State()
     weight = State()
     category = State()
     nosology = State()
     course = State()
+    data_confirmation = State()
+    contacts_input = State()
     first_name = State()
     last_name = State()
     email = State()

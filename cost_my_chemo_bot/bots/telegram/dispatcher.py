@@ -1,39 +1,56 @@
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from aiogram.types import ParseMode
+from aiogram.utils.text_decorations import HtmlDecoration
 from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import messages
-from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
+from cost_my_chemo_bot.bots.telegram.keyboard import Buttons, get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
-from cost_my_chemo_bot.config import SETTINGS
+from cost_my_chemo_bot.config import SETTINGS, StorageType
 from cost_my_chemo_bot.db import DB, Course
 
 logger = getLogger(__name__)
 
 bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-storage = GcloudStorage()
+if SETTINGS.STORAGE_TYPE is StorageType.JSON:
+    storage = JSONStorage(SETTINGS.STATE_STORAGE_PATH)
+elif SETTINGS.STORAGE_TYPE is StorageType.GCLOUD:
+    storage = GcloudStorage()
 # storage = FirestoreStorage()
 dp = Dispatcher(bot, storage=storage)
 database = DB()
 
 
-async def send_height_message(
+async def send_welcome_message(
     message: types.Message, initial: bool = False
 ) -> types.Message | SendMessage:
     text = ""
     if initial:
-        text += messages.WELCOME.format(full_name=message.chat.full_name)
-    text += messages.HEIGHT_INPUT
+        text += messages.WELCOME
+
+    kb = types.InlineKeyboardMarkup()
+    kb.add(Buttons.YES.value)
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=kb,
+    )
+
+
+async def send_height_message(message: types.Message) -> types.Message | SendMessage:
+    text = messages.HEIGHT_INPUT
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=get_keyboard_markup(),
     )
 
 
@@ -92,12 +109,6 @@ async def send_course_message(
     recommended_courses: list[Course] = await database.find_courses(
         category_id=category_id, nosology_id=nosology_id
     )
-    logger.info(
-        "category_id=%s nosology_id=%s recommended_courses=%s",
-        category_id,
-        nosology_id,
-        recommended_courses,
-    )
     buttons = []
     for course in sorted(recommended_courses, key=lambda item: item.Course):
         buttons.append(
@@ -130,6 +141,56 @@ async def send_lead_message(
             inline=False,
         ),
         parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+async def send_data_confirmation_message(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
+    state_data = await parse_state(state=state)
+    category = await database.find_category_by_id(category_id=state_data.category_id)
+    nosology = await database.find_nosology_by_id(nosology_id=state_data.nosology_id)
+    course = await database.find_course_by_id(course_id=state_data.course_id)
+    html_decoration = HtmlDecoration()
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=messages.DATA_CONFIRMATION.format(
+            height=html_decoration.bold(state_data.height),
+            weight=html_decoration.bold(state_data.weight),
+            category_name=html_decoration.bold(category.categoryName),
+            nosology_name=html_decoration.bold(nosology.nosologyName),
+            course_name=html_decoration.bold(course.Course),
+        ),
+        reply_markup=get_keyboard_markup(
+            buttons=[Buttons.YES.value, Buttons.NEED_CORRECTION.value]
+        ),
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def send_contacts_input_message(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
+    state_data = await parse_state(state=state)
+    category = await database.find_category_by_id(category_id=state_data.category_id)
+    nosology = await database.find_nosology_by_id(nosology_id=state_data.nosology_id)
+    course = await database.find_course_by_id(course_id=state_data.course_id)
+    course_price = course.price(bsa=state_data.bsa)
+    html_decoration = HtmlDecoration()
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=messages.DATA_CORRECT.format(
+            height=html_decoration.bold(state_data.height),
+            weight=html_decoration.bold(state_data.weight),
+            category_name=html_decoration.bold(category.categoryName),
+            nosology_name=html_decoration.bold(nosology.nosologyName),
+            course_name=html_decoration.bold(course.Course),
+            course_price=html_decoration.bold(f"{course_price:.2f}"),
+        ),
+        reply_markup=get_keyboard_markup(buttons=[Buttons.CONTACTS_INPUT.value]),
+        parse_mode=ParseMode.HTML,
     )
 
 

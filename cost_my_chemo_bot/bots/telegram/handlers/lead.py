@@ -34,6 +34,15 @@ async def save_lead(message: types.Message, state: FSMContext):
         logger.info("save lead: %s", resp.text)
 
 
+async def process_contacts_input(
+    callback: types.CallbackQuery, state: FSMContext
+) -> types.Message | SendMessage:
+    message = callback.message
+    await state.update_data(contacts_input=callback.data)
+    await state.set_state(Form.first_name)
+    return await dispatcher.send_first_name_message(message=message)
+
+
 async def process_first_name(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -83,7 +92,10 @@ async def process_phone_number_invalid(
     return await dispatcher.send_phone_number_invalid_message(message=message)
 
 
-def init_handlers(dp: Dispatcher):
+def init_lead_handlers(dp: Dispatcher):
+    dp.register_callback_query_handler(
+        process_contacts_input, filters.contacts_input, state=Form.contacts_input
+    )
     dp.register_message_handler(process_first_name, state=Form.first_name)
     dp.register_message_handler(process_last_name, state=Form.last_name)
     dp.register_message_handler(process_email, filters.email_valid, state=Form.email)

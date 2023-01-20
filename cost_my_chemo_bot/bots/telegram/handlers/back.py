@@ -5,8 +5,9 @@ from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
+from cost_my_chemo_bot.config import SETTINGS
 
-logger = getLogger(__name__)
+logger = getLogger(__name__, level=SETTINGS.LOG_LEVEL)
 
 
 @dispatcher.dp.callback_query_handler(filters.back_valid, state="*")
@@ -14,7 +15,6 @@ logger = getLogger(__name__)
 async def back_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
-    logger.info("state=%s", state)
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
@@ -31,6 +31,8 @@ async def back_handler(
     state_data = await parse_state(state=state)
     logger.debug("state data: %s", state_data)
     match current_state:
+        case Form.initial.state:
+            return await dispatcher.send_welcome_message(message=message)
         case Form.height.state:
             return await dispatcher.send_height_message(message=message)
         case Form.weight.state:
@@ -47,6 +49,16 @@ async def back_handler(
                 message=message,
                 category_id=state_data.category_id,
                 nosology_id=state_data.nosology_id,
+            )
+        case Form.data_confirmation.state:
+            return await dispatcher.send_data_confirmation_message(
+                message=message,
+                state=state,
+            )
+        case Form.contacts_input.state:
+            return await dispatcher.send_contacts_input_message(
+                message=message,
+                state=state,
             )
         case Form.first_name.state:
             return await dispatcher.send_first_name_message(message=message)
