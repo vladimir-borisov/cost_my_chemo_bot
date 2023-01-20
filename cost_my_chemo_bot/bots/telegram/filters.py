@@ -56,7 +56,7 @@ async def category_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
 
-    return not category_valid(callback=callback)
+    return not await category_valid(callback=callback)
 
 
 async def nosology_valid(callback: types.CallbackQuery) -> bool:
@@ -77,7 +77,7 @@ async def nosology_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
 
-    return not nosology_valid(callback=callback)
+    return not await nosology_valid(callback=callback)
 
 
 async def course_valid(callback: types.CallbackQuery) -> bool:
@@ -104,7 +104,7 @@ async def course_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
 
-    return not course_valid(callback=callback)
+    return not await course_valid(callback=callback)
 
 
 async def email_valid(message: types.Message) -> bool:
@@ -118,7 +118,7 @@ async def email_valid(message: types.Message) -> bool:
 
 
 async def email_invalid(message: types.Message) -> bool:
-    return not email_valid(message)
+    return not await email_valid(message)
 
 
 async def phone_number_valid(message: types.Message) -> bool:
@@ -135,4 +135,4 @@ async def phone_number_valid(message: types.Message) -> bool:
 
 
 async def phone_number_invalid(message: types.Message) -> bool:
-    return not phone_number_valid(message)
+    return not await phone_number_valid(message)
