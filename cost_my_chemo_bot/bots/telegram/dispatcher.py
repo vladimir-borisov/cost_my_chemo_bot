@@ -143,7 +143,7 @@ async def send_first_name_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=types.ReplyKeyboardRemove(),
+        reply_markup=get_keyboard_markup(),
         parse_mode=ParseMode.MARKDOWN,
     )
 
