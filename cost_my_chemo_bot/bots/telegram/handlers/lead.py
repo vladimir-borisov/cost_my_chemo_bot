@@ -77,6 +77,12 @@ async def process_phone_number(
     )
 
 
+async def process_phone_number_invalid(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
+    return await dispatcher.send_phone_number_invalid_message(message=message)
+
+
 def init_handlers(dp: Dispatcher):
     dp.register_message_handler(process_first_name, state=Form.first_name)
     dp.register_message_handler(process_last_name, state=Form.last_name)
@@ -84,4 +90,11 @@ def init_handlers(dp: Dispatcher):
     dp.register_message_handler(
         process_email_invalid, filters.email_invalid, state=Form.email
     )
-    dp.register_message_handler(process_phone_number, state=Form.phone_number)
+    dp.register_message_handler(
+        process_phone_number, filters.phone_number_valid, state=Form.phone_number
+    )
+    dp.register_message_handler(
+        process_phone_number_invalid,
+        filters.phone_number_invalid,
+        state=Form.phone_number,
+    )

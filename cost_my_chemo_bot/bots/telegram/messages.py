@@ -21,6 +21,7 @@ LEAD_LAST_NAME = "Введите вашу фамилию"
 LEAD_EMAIL = "Введите ваш email"
 LEAD_EMAIL_WRONG = "Неверно введен email. Введите email."
 LEAD_PHONE_NUMBER = "Введите ваш номер телефона"
+LEAD_PHONE_NUMBER_WRONG = "Неверно введен номер телефона. Введите номер телефона."
 THANKS = "Спасибо!"
 
 

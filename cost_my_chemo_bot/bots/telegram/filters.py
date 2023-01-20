@@ -55,13 +55,8 @@ async def category_valid(callback: types.CallbackQuery) -> bool:
 async def category_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
-    return bool(
-        [
-            category
-            for category in database.categories
-            if callback.data == category.categoryid
-        ]
-    )
+
+    return not category_valid(callback=callback)
 
 
 async def nosology_valid(callback: types.CallbackQuery) -> bool:
@@ -81,17 +76,8 @@ async def nosology_valid(callback: types.CallbackQuery) -> bool:
 async def nosology_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
-    nosology_id = callback.data
-    message = callback.message
-    dp = Dispatcher.get_current()
-    state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
-    data = await parse_state(state=state)
-    nosologies = await database.find_nosologies_by_category_id(
-        category_id=data.category_id
-    )
-    return bool(
-        [nosology for nosology in nosologies if nosology.nosologyid == nosology_id]
-    )
+
+    return not nosology_valid(callback=callback)
 
 
 async def course_valid(callback: types.CallbackQuery) -> bool:
@@ -118,23 +104,7 @@ async def course_invalid(callback: types.CallbackQuery) -> bool:
     if callback.data in ("menu", "back"):
         return False
 
-    message = callback.message
-    dp = Dispatcher.get_current()
-    state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
-    data = await parse_state(state=state)
-    filtered_courses = await database.find_courses(
-        category_id=data.category_id, nosology_id=data.nosology_id
-    )
-
-    course_id = callback.data
-    filtered_courses = [
-        course for course in filtered_courses if course.Courseid == course_id
-    ]
-    if not filtered_courses:
-        return True
-
-    assert len(filtered_courses) == 1
-    return False
+    return not course_valid(callback=callback)
 
 
 async def email_valid(message: types.Message) -> bool:
@@ -148,10 +118,21 @@ async def email_valid(message: types.Message) -> bool:
 
 
 async def email_invalid(message: types.Message) -> bool:
+    return not email_valid(message)
+
+
+async def phone_number_valid(message: types.Message) -> bool:
     if message.is_command():
+        return False
+
+    if message.text.isdigit():
         return True
 
-    try:
-        return not bool(EmailStr.validate(message.text))
-    except EmailError:
-        return True
+    if message.text.startswith("+"):
+        return message.text[1:].isdigit()
+
+    return False
+
+
+async def phone_number_invalid(message: types.Message) -> bool:
+    return not phone_number_valid(message)

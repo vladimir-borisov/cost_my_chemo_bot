@@ -194,3 +194,15 @@ async def send_phone_number_message(
         text=text,
         reply_markup=get_keyboard_markup(),
     )
+
+
+async def send_phone_number_invalid_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    text = messages.LEAD_PHONE_NUMBER_WRONG
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=get_keyboard_markup(),
+    )
