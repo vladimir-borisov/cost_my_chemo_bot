@@ -13,7 +13,6 @@ logger = getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.callback_query_handler(filters.course_valid, state=Form.course)
 async def process_course(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -23,7 +22,6 @@ async def process_course(
     return await dispatcher.send_data_confirmation_message(message=message, state=state)
 
 
-@dispatcher.dp.callback_query_handler(filters.course_invalid, state=Form.course)
 async def process_course_invalid(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
     data = await parse_state(state=state)
@@ -56,8 +54,12 @@ async def process_data_reenter(callback: types.CallbackQuery, state: FSMContext)
 
 
 def init_course_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(filters.course_valid, state=Form.course)
-    dp.register_callback_query_handler(filters.course_invalid, state=Form.course)
+    dp.register_callback_query_handler(
+        process_course, filters.course_valid, state=Form.course
+    )
+    dp.register_callback_query_handler(
+        process_course_invalid, filters.course_invalid, state=Form.course
+    )
 
     dp.register_callback_query_handler(
         process_data_confirmation, filters.data_confirmed, state=Form.data_confirmation
