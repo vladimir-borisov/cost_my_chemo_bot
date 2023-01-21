@@ -35,6 +35,10 @@ jobs:
       - name: "Set up Cloud SDK"
         uses: "google-github-actions/setup-gcloud@v0"
 
+      - id: "Prepare env"
+        run: >
+          echo "${{ secrets.CLOUD_ENV }} > cloud_env.yaml"
+
       - id: "deploy"
         run: >
           make deploy
