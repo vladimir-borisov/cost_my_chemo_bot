@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ONCO_MEDCONSULT_API_PASSWORD: SecretStr
 
     BITRIX_URL: HttpUrl = (
-        "https://b24-f64ofq.bitrix24.ru/rest/1/ucs1r5gyfqhvglp1/crm.lead.add.json"
+        "https://headache-hemonc.bitrix24.ru/rest/25/ztkgcrsxyths0h0u/crm.lead.add.json"
     )
 
     TELEGRAM_BOT_TOKEN: str
