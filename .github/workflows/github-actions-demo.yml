@@ -37,7 +37,7 @@ jobs:
 
       - id: "prepare_env"
         run: >
-          echo "${{ secrets.CLOUD_ENV }} > cloud_env.yaml"
+          echo "${{ secrets.CLOUD_ENV }}" > cloud_env.yaml
 
       - id: "deploy"
         run: >
