@@ -13,7 +13,7 @@ class Buttons(enum.Enum):
         text="Нет, нужно исправить", callback_data="need_correction"
     )
     BACK = types.InlineKeyboardButton("Назад", callback_data="back")
-    MENU = types.InlineKeyboardButton("Menu", callback_data="menu")
+    MENU = types.InlineKeyboardButton("Меню", callback_data="menu")
     CONTACTS_INPUT = types.InlineKeyboardButton(
         "Ввести контакты", callback_data="contacts_input"
     )
