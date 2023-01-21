@@ -12,14 +12,14 @@ from cost_my_chemo_bot.bots.telegram.keyboard import Buttons, get_keyboard_marku
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
-from cost_my_chemo_bot.config import SETTINGS, StorageType
+from cost_my_chemo_bot.config import JSON_STORAGE_SETTINGS, SETTINGS, StorageType
 from cost_my_chemo_bot.db import DB, Course
 
 logger = getLogger(__name__)
 
 bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
 if SETTINGS.STORAGE_TYPE is StorageType.JSON:
-    storage = JSONStorage(SETTINGS.STATE_STORAGE_PATH)
+    storage = JSONStorage(JSON_STORAGE_SETTINGS.STATE_STORAGE_PATH)
 elif SETTINGS.STORAGE_TYPE is StorageType.GCLOUD:
     storage = GcloudStorage()
 # storage = FirestoreStorage()

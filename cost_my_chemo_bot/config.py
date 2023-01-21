@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str
     LOG_LEVEL: int = Field(logging.INFO)
     BOT_MODE: BotMode = BotMode.POLLING
-    STATE_STORAGE_PATH: FilePath = "storage.json"
     SET_COMMANDS: bool = False
 
     STORAGE_TYPE: StorageType = StorageType.JSON
@@ -53,7 +52,16 @@ class WebhookSettings(BaseSettings):
         env_file = ".env"
 
 
+class JSONStorageSettings(BaseSettings):
+    STATE_STORAGE_PATH: FilePath = "state.json"
+
+    class Config:
+        env_file = ".env"
+
+
 SETTINGS = Settings()
 WEBHOOK_SETTINGS = None
 if SETTINGS.BOT_MODE is BotMode.WEBHOOK:
     WEBHOOK_SETTINGS = WebhookSettings()
+if SETTINGS.STORAGE_TYPE is StorageType.JSON:
+    JSON_STORAGE_SETTINGS = JSONStorageSettings()
