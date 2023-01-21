@@ -19,13 +19,13 @@ jobs:
   Deploy-Gcloud-Function:
     runs-on: ubuntu-latest
     permissions:
-      contents: 'read'
-      id-token: 'write'
+      contents: "read"
+      id-token: "write"
     steps:
       - uses: actions/checkout@v3
 
       - id: auth
-        name: 'Authenticate to Google Cloud'
+        name: "Authenticate to Google Cloud"
         uses: google-github-actions/auth@v1
         with:
           # credentials_json: "${{ secrets.GSERVICE_ACCCOUNT }}"
