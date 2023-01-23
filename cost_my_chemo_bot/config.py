@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: int = Field(logging.INFO)
     BOT_MODE: BotMode = BotMode.POLLING
     SET_COMMANDS: bool = False
+    REDIS_PASSWORD: str = ""
 
     STORAGE_TYPE: StorageType = StorageType.JSON
 
@@ -43,8 +44,6 @@ class WebhookSettings(BaseSettings):
     # webserver settings
     WEBAPP_HOST: str = "0.0.0.0"  # or ip
     WEBAPP_PORT: int = 8080
-    
-    REDIS_PASSWORD: str = ""
 
     @property
     def webhook_url(self) -> str:
