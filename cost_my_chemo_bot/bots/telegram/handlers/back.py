@@ -32,16 +32,21 @@ async def back_handler(
     logger.debug("state data: %s", state_data)
     match current_state:
         case Form.initial.state:
+            await state.update_data(initial=None)
             return await dispatcher.send_welcome_message(message=message)
         case Form.height.state:
+            await state.update_data(height=None)
             return await dispatcher.send_height_message(message=message)
         case Form.weight.state:
+            await state.update_data(weight=None)
             return await dispatcher.send_weight_message(message=message)
         case Form.category.state:
+            await state.update_data(category=None)
             return await dispatcher.send_category_message(message=message)
         case Form.nosology.state:
+            await state.update_data(nosology=None)
             if state_data.is_accompanying_therapy:
-                await Form.previous()
+                await state.set_state(Form.category)
                 return await dispatcher.send_category_message(message=message)
 
             return await dispatcher.send_nosology_message(
@@ -49,26 +54,33 @@ async def back_handler(
                 state=state,
             )
         case Form.course.state:
+            await state.update_data(course=None)
             return await dispatcher.send_course_message(
                 message=message,
                 category_id=state_data.category_id,
                 nosology_id=state_data.nosology_id,
             )
         case Form.data_confirmation.state:
+            await state.update_data(data_confirmation=None)
             return await dispatcher.send_data_confirmation_message(
                 message=message,
                 state=state,
             )
         case Form.contacts_input.state:
+            await state.update_data(contacts_input=None)
             return await dispatcher.send_contacts_input_message(
                 message=message,
                 state=state,
             )
         case Form.first_name.state:
+            await state.update_data(first_name=None)
             return await dispatcher.send_first_name_message(message=message)
         case Form.last_name.state:
+            await state.update_data(last_name=None)
             return await dispatcher.send_last_name_message(message=message)
         case Form.email.state:
+            await state.update_data(email=None)
             return await dispatcher.send_email_message(message=message)
         case Form.phone_number.state:
+            await state.update_data(phone_number=None)
             return await dispatcher.send_phone_number_message(message=message)
