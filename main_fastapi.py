@@ -70,7 +70,7 @@ async def register_handlers(dp: Dispatcher):
     init_handlers(dp)
 
 
-@AsyncLRU(maxsize=1)
+@AsyncLRU(maxsize=None)
 async def init_bot() -> Dispatcher:
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
