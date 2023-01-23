@@ -328,6 +328,7 @@ class GcloudStorage(BaseStorage):
     @contextlib.asynccontextmanager
     async def get_storage(self) -> Generator[Storage, None, None]:
         async with aiohttp.ClientSession() as session:
+            logger.info("session=%s", session)
             storage = Storage(session=session)
             yield storage
 

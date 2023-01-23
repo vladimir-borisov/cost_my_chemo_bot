@@ -9,7 +9,7 @@ from pydantic import BaseModel, ValidationError, validator
 
 from cost_my_chemo_bot.config import SETTINGS
 
-logger = getLogger(__name__)
+logger = getLogger(__name__, level=SETTINGS.LOG_LEVEL)
 
 
 class CategoryNotFound(Exception):
@@ -68,16 +68,14 @@ class DB:
     _categories: typing.ClassVar[list[Category] | None] = None
     _nosologies: typing.ClassVar[list[Nosology] | None] = None
     loaded: typing.ClassVar[bool] = False
-
-    def __init__(self):
-        self.client = AsyncClient(
-            base_url=SETTINGS.ONCO_MEDCONSULT_API_URL,
-            auth=(
-                SETTINGS.ONCO_MEDCONSULT_API_LOGIN,
-                SETTINGS.ONCO_MEDCONSULT_API_PASSWORD.get_secret_value(),
-            ),
-            headers={"Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8"},
-        )
+    client = AsyncClient(
+        base_url=SETTINGS.ONCO_MEDCONSULT_API_URL,
+        auth=(
+            SETTINGS.ONCO_MEDCONSULT_API_LOGIN,
+            SETTINGS.ONCO_MEDCONSULT_API_PASSWORD.get_secret_value(),
+        ),
+        headers={"Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8"},
+    )
 
     @property
     def courses(self) -> list[Course]:
@@ -137,7 +135,7 @@ class DB:
 
     async def load_db(self) -> None:
         logger.debug("loading db")
-        if self.loaded:
+        if DB.loaded:
             logger.debug("already loaded!")
             return
 
@@ -146,6 +144,11 @@ class DB:
         DB._nosologies = await self._fetch_nosologies()
         DB.loaded = True
         logger.debug("loaded db successfully")
+
+    async def reload_db(self) -> None:
+        logger.debug("reloading db")
+        DB.loaded = False
+        await self.load_db()
 
     async def find_courses(
         self, category_id: str, nosology_id: str | None
@@ -206,6 +209,10 @@ class DB:
             for nosology in self.nosologies
             if nosology.categoryid1 == category_id
         ]
+
+    @classmethod
+    async def close(cls):
+        await cls.client.aclose()
 
 
 if __name__ == "__main__":

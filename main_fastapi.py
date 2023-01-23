@@ -1,10 +1,10 @@
-import asyncio
 import json
 
-import functions_framework
+import uvicorn
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher.filters import Command, Text
-from flask import Request
+from cache import AsyncLRU
+from fastapi import FastAPI
 from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import filters
@@ -23,7 +23,7 @@ from cost_my_chemo_bot.bots.telegram.handlers import (
 )
 from cost_my_chemo_bot.bots.telegram.state import Form
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
-from cost_my_chemo_bot.config import SETTINGS
+from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
@@ -69,12 +69,17 @@ async def register_handlers(dp: Dispatcher):
     init_handlers(dp)
 
 
+@AsyncLRU(maxsize=1)
 async def init_bot() -> Dispatcher:
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
+    getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
+    getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
 
     database = DB()
     await database.load_db()
     bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
+    if WEBHOOK_SETTINGS.SET_WEBHOOK:
+        await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
     storage = GcloudStorage()
     dp = Dispatcher(bot, storage=storage)
     Bot.set_current(dp.bot)
@@ -84,47 +89,61 @@ async def init_bot() -> Dispatcher:
     return dp
 
 
-async def process_event(event) -> dict:
-    """
-    Converting an AWS Lambda event to an update and handling that
-    update.
-    """
+app = FastAPI()
 
-    logger.info("Update: " + str(event))
 
+@app.on_event("startup")
+async def on_startup():
+    _ = await init_bot()
+
+
+@app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
+async def bot_webhook(update: dict):
+    telegram_update = types.Update(**update)
     dp = await init_bot()
-
-    update = types.Update.to_object(event)
-    logger.info(f"new_update={update}")
-    results = await dp.process_update(update)
+    results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
     if not results:
         result = {}
     else:
         result = results[0]
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-    session = await dp.bot.get_session()
-    await session.close()
     return result
 
 
-@functions_framework.http
-def process_webhook(request: Request):
-    """HTTP Cloud Function.
-    Args:
-        request (flask.Request): The request object.
-        <https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data>
-    Returns:
-        The response text, or any set of values that can be turned into a
-        Response object using `make_response`
-        <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
-    """
-    request_json = request.get_json(silent=True)
-    if request_json is None:
-        request_json = {}
+@app.get("/db/courses/")
+async def get_db_courses():
+    return DB().courses
 
-    return asyncio.new_event_loop().run_until_complete(
-        process_event(event=request_json)
+
+@app.get("/db/nosologies/")
+async def get_db_nosologies():
+    return DB().courses
+
+
+@app.get("/db/categories/")
+async def get_db_categories():
+    return DB().categories
+
+
+@app.post("/db/reload/")
+async def reload_db():
+    await DB().reload_db()
+    return {"ok": True}
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    dp = await init_bot()
+    await dp.storage.close()
+    await DB.close()
+    session = await dp.bot.get_session()
+    await session.close()
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        host=WEBHOOK_SETTINGS.WEBAPP_HOST,
+        port=WEBHOOK_SETTINGS.WEBAPP_PORT,
     )
