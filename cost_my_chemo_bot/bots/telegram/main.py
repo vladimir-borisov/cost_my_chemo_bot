@@ -18,7 +18,6 @@ async def on_startup(dp: Dispatcher):
         await bot.set_my_commands(
             commands=[
                 types.BotCommand(command="/start", description="Начать сначала"),
-                types.BotCommand(command="/menu", description="Начать сначала"),
                 types.BotCommand(command="/stop", description="Стоп"),
             ]
         )
