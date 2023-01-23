@@ -2,8 +2,8 @@ import json
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from aiogram.dispatcher.filters import Command, Text
-from cache import AsyncLRU
 from fastapi import FastAPI
 from logfmt_logger import getLogger
 
@@ -22,12 +22,22 @@ from cost_my_chemo_bot.bots.telegram.handlers import (
     process_weight_invalid,
 )
 from cost_my_chemo_bot.bots.telegram.state import Form
-from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 logger = getLogger(__name__)
+
+bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
+storage = RedisStorage2(
+    host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
+    port=16916,
+    db=0,
+    username="cost_my_chemo_bot",
+    password=SETTINGS.REDIS_PASSWORD,
+)
+dp = Dispatcher(bot, storage=storage)
+Bot.set_current(dp.bot)
+Dispatcher.set_current(dp)
 
 
 async def register_handlers(dp: Dispatcher):
@@ -70,7 +80,6 @@ async def register_handlers(dp: Dispatcher):
     init_handlers(dp)
 
 
-@AsyncLRU(maxsize=None)
 async def init_bot() -> Dispatcher:
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
@@ -78,19 +87,8 @@ async def init_bot() -> Dispatcher:
 
     database = DB()
     await database.load_db()
-    bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
     if WEBHOOK_SETTINGS.SET_WEBHOOK:
         await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
-    storage = RedisStorage2(
-        host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
-        port=16916,
-        db=0,
-        username="cost_my_chemo_bot",
-        password=SETTINGS.REDIS_PASSWORD,
-    )
-    dp = Dispatcher(bot, storage=storage)
-    Bot.set_current(dp.bot)
-    Dispatcher.set_current(dp)
 
     await register_handlers(dp)
     return dp

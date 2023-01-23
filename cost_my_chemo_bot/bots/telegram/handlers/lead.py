@@ -16,7 +16,7 @@ async def save_lead(message: types.Message, state: FSMContext):
     state_data = await parse_state(state=state)
 
     params = {
-        "FIELDS[TITLE]": "Новый лид из телеграмм бота \"Лечим у Ласкова\"",
+        "FIELDS[TITLE]": 'Новый лид из телеграмм бота "Лечим у Ласкова"',
         "FIELDS[NAME]": state_data.first_name,
         "FIELDS[LAST_NAME": state_data.last_name,
         "FIELDS[EMAIL][0][VALUE]": state_data.email,
