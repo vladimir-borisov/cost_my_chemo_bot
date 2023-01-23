@@ -92,6 +92,25 @@ async def process_phone_number_invalid(
     return await dispatcher.send_phone_number_invalid_message(message=message)
 
 
+async def process_skip(
+    callback: types.CallbackQuery, state: FSMContext
+) -> types.Message | SendMessage:
+    message = callback.message
+    current_state = await state.get_state()
+    if current_state == Form.first_name.state:
+        message.text = None
+        return await process_first_name(message=message, state=state)
+    if current_state == Form.last_name.state:
+        message.text = None
+        return await process_last_name(message=message, state=state)
+    if current_state == Form.email.state:
+        message.text = None
+        return await process_email(message=message, state=state)
+    if current_state == Form.phone_number.state:
+        message.text = None
+        return await process_phone_number(message=message, state=state)
+
+
 def init_lead_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         process_contacts_input, filters.contacts_input, state=Form.contacts_input
@@ -109,4 +128,13 @@ def init_lead_handlers(dp: Dispatcher):
         process_phone_number_invalid,
         filters.phone_number_invalid,
         state=Form.phone_number,
+    )
+
+    dp.register_callback_query_handler(
+        process_skip, filters.skip, state=Form.first_name
+    )
+    dp.register_callback_query_handler(process_skip, filters.skip, state=Form.last_name)
+    dp.register_callback_query_handler(process_skip, filters.skip, state=Form.email)
+    dp.register_callback_query_handler(
+        process_skip, filters.skip, state=Form.phone_number
     )

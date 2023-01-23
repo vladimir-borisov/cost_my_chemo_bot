@@ -53,7 +53,7 @@ class WebhookSettings(BaseSettings):
 
 
 class JSONStorageSettings(BaseSettings):
-    STATE_STORAGE_PATH: FilePath = "state.json"
+    STATE_STORAGE_PATH: FilePath = "storage.json"
 
     class Config:
         env_file = ".env"

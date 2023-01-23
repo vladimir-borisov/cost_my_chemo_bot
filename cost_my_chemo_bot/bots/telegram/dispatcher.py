@@ -149,7 +149,11 @@ async def send_data_confirmation_message(
 ) -> types.Message | SendMessage:
     state_data = await parse_state(state=state)
     category = await database.find_category_by_id(category_id=state_data.category_id)
-    nosology = await database.find_nosology_by_id(nosology_id=state_data.nosology_id)
+    nosology = ""
+    if not state_data.is_accompanying_therapy:
+        nosology = await database.find_nosology_by_id(
+            nosology_id=state_data.nosology_id
+        )
     course = await database.find_course_by_id(course_id=state_data.course_id)
     html_decoration = HtmlDecoration()
     return await send_message(
@@ -159,7 +163,9 @@ async def send_data_confirmation_message(
             height=html_decoration.bold(state_data.height),
             weight=html_decoration.bold(state_data.weight),
             category_name=html_decoration.bold(category.categoryName),
-            nosology_name=html_decoration.bold(nosology.nosologyName),
+            nosology_name=html_decoration.bold(
+                nosology.nosologyName if nosology else ""
+            ),
             course_name=html_decoration.bold(course.Course),
         ),
         reply_markup=get_keyboard_markup(
@@ -174,7 +180,11 @@ async def send_contacts_input_message(
 ) -> types.Message | SendMessage:
     state_data = await parse_state(state=state)
     category = await database.find_category_by_id(category_id=state_data.category_id)
-    nosology = await database.find_nosology_by_id(nosology_id=state_data.nosology_id)
+    nosology = ""
+    if not state_data.is_accompanying_therapy:
+        nosology = await database.find_nosology_by_id(
+            nosology_id=state_data.nosology_id
+        )
     course = await database.find_course_by_id(course_id=state_data.course_id)
     course_price = course.price(bsa=state_data.bsa)
     html_decoration = HtmlDecoration()
@@ -185,7 +195,9 @@ async def send_contacts_input_message(
             height=html_decoration.bold(state_data.height),
             weight=html_decoration.bold(state_data.weight),
             category_name=html_decoration.bold(category.categoryName),
-            nosology_name=html_decoration.bold(nosology.nosologyName),
+            nosology_name=html_decoration.bold(
+                nosology.nosologyName if nosology else ""
+            ),
             course_name=html_decoration.bold(course.Course),
             course_price=html_decoration.bold(f"{course_price:.2f}"),
         ),
@@ -204,7 +216,7 @@ async def send_first_name_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=get_keyboard_markup(),
+        reply_markup=get_keyboard_markup(buttons=[Buttons.SKIP.value]),
         parse_mode=ParseMode.MARKDOWN,
     )
 
@@ -217,7 +229,7 @@ async def send_last_name_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=get_keyboard_markup(),
+        reply_markup=get_keyboard_markup(buttons=[Buttons.SKIP.value]),
     )
 
 
@@ -229,7 +241,7 @@ async def send_email_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=get_keyboard_markup(),
+        reply_markup=get_keyboard_markup(buttons=[Buttons.SKIP.value]),
     )
 
 
@@ -253,7 +265,7 @@ async def send_phone_number_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=get_keyboard_markup(),
+        reply_markup=get_keyboard_markup(buttons=[Buttons.SKIP.value]),
     )
 
 

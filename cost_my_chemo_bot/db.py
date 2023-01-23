@@ -32,7 +32,7 @@ class Category(BaseModel):
 class Nosology(BaseModel):
     nosologyid: str
     nosologyName: str
-    categoryid1: str
+    categoryid1: str | None
 
 
 class Course(BaseModel):
@@ -150,12 +150,12 @@ class DB:
     async def find_courses(
         self, category_id: str, nosology_id: str | None
     ) -> list[Course]:
-        found = []
         if nosology_id is None:
             return [
                 course for course in self.courses if course.categoryid == category_id
             ]
 
+        found = []
         for course in self.courses:
             if course.categoryid == category_id and (
                 course.nosologyid1 == nosology_id

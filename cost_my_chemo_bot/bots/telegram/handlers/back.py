@@ -40,6 +40,10 @@ async def back_handler(
         case Form.category.state:
             return await dispatcher.send_category_message(message=message)
         case Form.nosology.state:
+            if state_data.is_accompanying_therapy:
+                await Form.previous()
+                return await dispatcher.send_category_message(message=message)
+
             return await dispatcher.send_nosology_message(
                 message=message,
                 state=state,

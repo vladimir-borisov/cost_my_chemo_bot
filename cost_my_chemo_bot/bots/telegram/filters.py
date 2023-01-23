@@ -106,13 +106,13 @@ async def course_valid(callback: types.CallbackQuery) -> bool:
         nosology_id=state_data.nosology_id,
     )
     course_id = callback.data
-    filtered_courses = [
+    course_by_id_filter = [
         course for course in filtered_courses if course.Courseid == course_id
     ]
-    if not filtered_courses:
+    if not course_by_id_filter:
         return False
 
-    assert len(filtered_courses) == 1
+    assert len(course_by_id_filter) == 1
     return True
 
 
@@ -172,3 +172,7 @@ async def phone_number_invalid(message: types.Message) -> bool:
         return False
 
     return not await phone_number_valid(message)
+
+
+async def skip(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.SKIP.value.callback_data

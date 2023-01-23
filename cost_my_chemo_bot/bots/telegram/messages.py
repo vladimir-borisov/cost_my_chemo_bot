@@ -43,7 +43,7 @@ DATA_CORRECT = dedent(
     Расчет был выполнен для пациента с такими данными и заболеванием:
     Рост: {height} см
     Вес: {weight} кг
-    Раздел: {course_name}
+    Раздел: {category_name}
     Заболевание: {nosology_name}
     Курс: {course_name}
 
