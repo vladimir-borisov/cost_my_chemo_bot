@@ -17,6 +17,10 @@ class StateData(BaseModel):
     phone_number: str | None = None
 
     @property
+    def is_accompanying_therapy(self) -> bool:
+        return self.category_id == "e11397b4-8229-11ed-810b-002590c014a5"
+
+    @property
     def bsa(self) -> float:
         assert self.height is not None and self.weight is not None
         return math.sqrt(self.height * self.weight / 3600)

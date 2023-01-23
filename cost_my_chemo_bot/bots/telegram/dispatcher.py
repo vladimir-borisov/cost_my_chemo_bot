@@ -104,7 +104,7 @@ async def send_nosology_message(
 
 
 async def send_course_message(
-    message: types.Message, category_id: str, nosology_id: str
+    message: types.Message, category_id: str, nosology_id: str | None
 ) -> types.Message | SendMessage:
     recommended_courses: list[Course] = await database.find_courses(
         category_id=category_id, nosology_id=nosology_id

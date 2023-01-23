@@ -32,6 +32,7 @@ class Category(BaseModel):
 class Nosology(BaseModel):
     nosologyid: str
     nosologyName: str
+    categoryid1: str
 
 
 class Course(BaseModel):
@@ -146,8 +147,15 @@ class DB:
         DB.loaded = True
         logger.debug("loaded db successfully")
 
-    async def find_courses(self, category_id: str, nosology_id: str) -> list[Course]:
+    async def find_courses(
+        self, category_id: str, nosology_id: str | None
+    ) -> list[Course]:
         found = []
+        if nosology_id is None:
+            return [
+                course for course in self.courses if course.categoryid == category_id
+            ]
+
         for course in self.courses:
             if course.categoryid == category_id and (
                 course.nosologyid1 == nosology_id
@@ -193,17 +201,10 @@ class DB:
         raise NosologyNotFound(f"no such nosology: {nosology_id}")
 
     async def find_nosologies_by_category_id(self, category_id: str) -> list[Nosology]:
-        courses = [
-            course for course in self.courses if course.categoryid == category_id
-        ]
         return [
             nosology
             for nosology in self.nosologies
-            if nosology.nosologyid in [course.nosologyid1 for course in courses]
-            or nosology.nosologyid in [course.nosologyid2 for course in courses]
-            or nosology.nosologyid in [course.nosologyid3 for course in courses]
-            or nosology.nosologyid in [course.nosologyid4 for course in courses]
-            or nosology.nosologyid in [course.nosologyid5 for course in courses]
+            if nosology.categoryid1 == category_id
         ]
 
 
