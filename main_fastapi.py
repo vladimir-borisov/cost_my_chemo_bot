@@ -108,7 +108,6 @@ async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
     Dispatcher.set_current(dp)
     Bot.set_current(bot)
-    logger.info("dp=%s", dp)
     results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
@@ -144,6 +143,7 @@ async def reload_db():
 async def on_shutdown():
     dp = await init_bot()
     await dp.storage.close()
+    await dp.storage.wait_closed()
     await DB.close()
     session = await dp.bot.get_session()
     await session.close()

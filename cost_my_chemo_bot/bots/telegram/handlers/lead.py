@@ -78,6 +78,7 @@ async def process_phone_number(
 ) -> types.Message | SendMessage:
     await state.update_data(phone_number=message.text)
     await save_lead(message=message, state=state)
+    await state.finish()
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
