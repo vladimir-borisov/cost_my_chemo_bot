@@ -43,6 +43,8 @@ class WebhookSettings(BaseSettings):
     # webserver settings
     WEBAPP_HOST: str = "0.0.0.0"  # or ip
     WEBAPP_PORT: int = 8080
+    
+    REDIS_PASSWORD: str = ""
 
     @property
     def webhook_url(self) -> str:

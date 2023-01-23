@@ -25,6 +25,7 @@ from cost_my_chemo_bot.bots.telegram.state import Form
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 logger = getLogger(__name__)
 
@@ -80,7 +81,13 @@ async def init_bot() -> Dispatcher:
     bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
     if WEBHOOK_SETTINGS.SET_WEBHOOK:
         await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
-    storage = GcloudStorage()
+    storage = RedisStorage2(
+        host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
+        port=16916,
+        db=0,
+        username="cost_my_chemo_bot",
+        password=SETTINGS.REDIS_PASSWORD,
+    )
     dp = Dispatcher(bot, storage=storage)
     Bot.set_current(dp.bot)
     Dispatcher.set_current(dp)
