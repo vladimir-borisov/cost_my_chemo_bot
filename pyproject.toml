@@ -20,6 +20,8 @@ functions-framework = "^3.3.0"
 google-cloud-firestore = "^2.7.3"
 gcloud-aio-storage = "^8.0.0"
 logfmt-logger = "^0.1.2"
+fastapi = {version = "^0.89.1", extras = ["all"]}
+async-cache = "^1.1.1"
 
 
 [tool.poetry.group.dev.dependencies]
