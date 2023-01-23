@@ -87,7 +87,7 @@ async def init_bot():
 
     database = DB()
     Dispatcher.set_current(dp)
-    Bot.set_current(dp.bot)
+    Bot.set_current(bot)
     await database.load_db()
     if WEBHOOK_SETTINGS.SET_WEBHOOK:
         await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
@@ -100,13 +100,15 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def on_startup():
-    _ = await init_bot()
+    await init_bot()
 
 
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
     await init_bot()
+    Dispatcher.set_current(dp)
+    Bot.set_current(bot)
     results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
