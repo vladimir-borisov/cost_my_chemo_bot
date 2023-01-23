@@ -106,7 +106,6 @@ async def on_startup():
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
-    await init_bot()
     Dispatcher.set_current(dp)
     Bot.set_current(bot)
     results = await dp.process_update(telegram_update)
