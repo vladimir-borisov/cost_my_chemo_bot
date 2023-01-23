@@ -86,6 +86,8 @@ async def init_bot():
     getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
 
     database = DB()
+    Dispatcher.set_current(dp)
+    Bot.set_current(dp.bot)
     await database.load_db()
     if WEBHOOK_SETTINGS.SET_WEBHOOK:
         await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
