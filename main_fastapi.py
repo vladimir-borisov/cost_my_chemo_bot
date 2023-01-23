@@ -108,6 +108,7 @@ async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
     Dispatcher.set_current(dp)
     Bot.set_current(bot)
+    logger.info("dp=%s", dp)
     results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
