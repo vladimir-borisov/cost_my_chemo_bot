@@ -75,7 +75,7 @@ async def category_invalid(callback: types.CallbackQuery) -> bool:
 async def nosology_valid(callback: types.CallbackQuery) -> bool:
     nosology_id = callback.data
     message = callback.message
-    dp = Dispatcher.get_current()
+    dp = Dispatcher.get_current(no_error=False)
     state = dp.current_state(chat=message.chat.id, user=callback.from_user.id)
     data = await parse_state(state=state)
     nosologies = await database.find_nosologies_by_category_id(

@@ -80,7 +80,7 @@ async def register_handlers(dp: Dispatcher):
     init_handlers(dp)
 
 
-async def init_bot() -> Dispatcher:
+async def init_bot():
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
     getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
@@ -91,7 +91,6 @@ async def init_bot() -> Dispatcher:
         await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
 
     await register_handlers(dp)
-    return dp
 
 
 app = FastAPI()
@@ -105,7 +104,7 @@ async def on_startup():
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
-    dp = await init_bot()
+    await init_bot()
     results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
