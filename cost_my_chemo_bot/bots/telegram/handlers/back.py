@@ -41,10 +41,10 @@ async def back_handler(
             await state.update_data(weight=None)
             return await dispatcher.send_weight_message(message=message)
         case Form.category.state:
-            await state.update_data(category=None)
+            await state.update_data(category_id=None)
             return await dispatcher.send_category_message(message=message)
         case Form.nosology.state:
-            await state.update_data(nosology=None)
+            await state.update_data(nosology_id=None)
             if state_data.is_accompanying_therapy:
                 await state.set_state(Form.category)
                 return await dispatcher.send_category_message(message=message)
@@ -54,7 +54,7 @@ async def back_handler(
                 state=state,
             )
         case Form.course.state:
-            await state.update_data(course=None)
+            await state.update_data(course_id=None)
             return await dispatcher.send_course_message(
                 message=message,
                 category_id=state_data.category_id,

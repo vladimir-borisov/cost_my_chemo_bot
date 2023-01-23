@@ -32,7 +32,7 @@ async def welcome_handler(
         logger.info("Cancelling state %r", current_state)
         await state.finish()
 
-    await state.update_data(initial=message.text)
+    await state.update_data(initial=True)
     await state.set_state(Form.initial)
     return await dispatcher.send_welcome_message(message=message, initial=True)
 
