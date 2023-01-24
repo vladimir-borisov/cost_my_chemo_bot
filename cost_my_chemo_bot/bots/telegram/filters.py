@@ -174,5 +174,13 @@ async def phone_number_invalid(message: types.Message) -> bool:
     return not await phone_number_valid(message)
 
 
+async def lead_confirmed(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.YES.value.callback_data
+
+
+async def lead_reenter(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.NEED_CORRECTION.value.callback_data
+
+
 async def skip(callback: types.CallbackQuery) -> bool:
     return callback.data == Buttons.SKIP.value.callback_data

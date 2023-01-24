@@ -279,3 +279,35 @@ async def send_phone_number_invalid_message(
         text=text,
         reply_markup=get_keyboard_markup(),
     )
+
+
+async def send_lead_confirmation_message(
+    message: types.Message, state: FSMContext
+) -> types.Message | SendMessage:
+    state_data = await parse_state(state=state)
+    html_decoration = HtmlDecoration()
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=messages.LEAD_CONFIRMATION.format(
+            first_name=html_decoration.bold(state_data.first_name),
+            last_name=html_decoration.bold(state_data.last_name),
+            email=html_decoration.bold(state_data.email),
+            phone_number=html_decoration.bold(state_data.phone_number),
+        ),
+        reply_markup=get_keyboard_markup(
+            buttons=[Buttons.YES.value, Buttons.NEED_CORRECTION.value]
+        ),
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def send_final_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=messages.FINAL_MESSAGE,
+        reply_markup=get_keyboard_markup(),
+    )

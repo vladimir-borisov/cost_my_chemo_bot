@@ -56,7 +56,19 @@ LEAD_EMAIL = "Введите ваш email"
 LEAD_EMAIL_WRONG = "Неверно введен email. Введите email."
 LEAD_PHONE_NUMBER = "Введите ваш номер телефона"
 LEAD_PHONE_NUMBER_WRONG = "Неверно введен номер телефона. Введите номер телефона."
-THANKS = "Спасибо!"
+LEAD_CONFIRMATION = dedent(
+    """
+    Спасибо! Давайте проверим. Вы указали:
+    
+    Имя: {first_name}
+    Фамилия: {last_name}
+    E-mail: {email}
+    Номер телефона: {phone_number}
+    
+    Всё правильно?
+"""
+)
+FINAL_MESSAGE = "Отлично. Мы свяжемся с вами в течение рабочего дня."
 GOODBYE = "До свидания!"
 
 

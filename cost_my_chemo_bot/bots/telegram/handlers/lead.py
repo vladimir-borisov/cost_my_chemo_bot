@@ -77,20 +77,29 @@ async def process_phone_number(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
     await state.update_data(phone_number=message.text)
-    await save_lead(message=message, state=state)
-    await state.finish()
-    return await send_message(
-        dispatcher.bot,
-        chat_id=message.chat.id,
-        text=messages.THANKS,
-        reply_markup=types.ReplyKeyboardRemove(),
-    )
+    await state.set_state(Form.lead_confirmation)
+    return await dispatcher.send_lead_confirmation_message(message=message, state=state)
 
 
 async def process_phone_number_invalid(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
     return await dispatcher.send_phone_number_invalid_message(message=message)
+
+
+async def process_lead_confirmation(
+    callback: types.CallbackQuery, state: FSMContext
+) -> types.Message | SendMessage:
+    message = callback.message
+    await save_lead(message=message, state=state)
+    await state.finish()
+    return await dispatcher.send_final_message(message=message)
+
+
+async def process_lead_reenter(callback: types.CallbackQuery, state: FSMContext):
+    message = callback.message
+    await state.set_state(Form.first_name)
+    return await dispatcher.send_first_name_message(message=message)
 
 
 async def process_skip(
@@ -129,6 +138,13 @@ def init_lead_handlers(dp: Dispatcher):
         process_phone_number_invalid,
         filters.phone_number_invalid,
         state=Form.phone_number,
+    )
+
+    dp.register_callback_query_handler(
+        process_lead_confirmation, filters.lead_confirmed, state=Form.lead_confirmation
+    )
+    dp.register_callback_query_handler(
+        process_lead_reenter, filters.lead_reenter, state=Form.lead_confirmation
     )
 
     dp.register_callback_query_handler(

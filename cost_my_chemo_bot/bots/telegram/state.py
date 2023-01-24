@@ -40,6 +40,7 @@ class Form(StatesGroup):
     last_name = State()
     email = State()
     phone_number = State()
+    lead_confirmation = State()
 
 
 async def parse_state(state: FSMContext) -> StateData:
