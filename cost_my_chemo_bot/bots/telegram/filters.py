@@ -1,3 +1,4 @@
+import phonenumbers
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Command, Text
 from logfmt_logger import getLogger
@@ -158,13 +159,8 @@ async def phone_number_valid(message: types.Message) -> bool:
     if message.is_command():
         return False
 
-    if message.text.isdigit():
-        return True
-
-    if message.text.startswith("+"):
-        return message.text[1:].isdigit()
-
-    return False
+    parsed_number = phonenumbers.parse(message.text, None)
+    return phonenumbers.is_valid_number(parsed_number)
 
 
 async def phone_number_invalid(message: types.Message) -> bool:
