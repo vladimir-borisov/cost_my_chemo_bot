@@ -109,7 +109,7 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
         current_username_bytes, correct_username_bytes
     )
     current_password_bytes = credentials.password.encode("utf8")
-    correct_password_bytes = str(SETTINGS.ONCO_MEDCONSULT_API_PASSWORD).encode("utf8")
+    correct_password_bytes = SETTINGS.ONCO_MEDCONSULT_API_PASSWORD.get_secret_value().encode("utf8")
     is_correct_password = secrets.compare_digest(
         current_password_bytes, correct_password_bytes
     )
