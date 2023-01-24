@@ -159,7 +159,10 @@ async def phone_number_valid(message: types.Message) -> bool:
     if message.is_command():
         return False
 
-    parsed_number = phonenumbers.parse(message.text, None)
+    try:
+        parsed_number = phonenumbers.parse(message.text, None)
+    except phonenumbers.NumberParseException:
+        return False
     return phonenumbers.is_valid_number(parsed_number)
 
 
