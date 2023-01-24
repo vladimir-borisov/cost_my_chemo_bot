@@ -60,7 +60,7 @@ class Course(BaseModel):
         if self.fixPrice:
             return self.coefficient
 
-        return self.coefficient * decimal.Decimal(str(bsa)) * decimal.Decimal("0.6")
+        return self.coefficient * decimal.Decimal(str(bsa)) * decimal.Decimal("0.75")
 
 
 class DB:
