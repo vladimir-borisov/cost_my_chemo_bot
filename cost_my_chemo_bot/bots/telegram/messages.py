@@ -54,8 +54,11 @@ LEAD_FIRST_NAME = "Введите ваше имя"
 LEAD_LAST_NAME = "Введите вашу фамилию"
 LEAD_EMAIL = "Введите ваш email"
 LEAD_EMAIL_WRONG = "Неверно введен email. Введите email."
-LEAD_PHONE_NUMBER = "Введите ваш номер телефона"
-LEAD_PHONE_NUMBER_WRONG = "Неверно введен номер телефона. Введите номер телефона."
+LEAD_PHONE_NUMBER = (
+    "Введите ваш номер телефона в международном формате.\n"
+    "Например: +7 999 999 99 99 для России или +375 99 999 99 99 Беларуси."
+)
+LEAD_PHONE_NUMBER_WRONG = f"Неверно введен номер телефона. {LEAD_PHONE_NUMBER}"
 LEAD_CONFIRMATION = dedent(
     """
     Спасибо! Давайте проверим. Вы указали:
