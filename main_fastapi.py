@@ -167,7 +167,8 @@ async def reload_db(credentials: HTTPBasicCredentials = Depends(check_creds)):
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    dp = await init_bot()
+    Dispatcher.set_current(dp)
+    Bot.set_current(bot)
     await dp.storage.close()
     await dp.storage.wait_closed()
     await DB.close()
