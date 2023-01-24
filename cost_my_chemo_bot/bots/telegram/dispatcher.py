@@ -309,5 +309,5 @@ async def send_final_message(
         bot,
         chat_id=message.chat.id,
         text=messages.FINAL_MESSAGE,
-        reply_markup=get_keyboard_markup(),
+        reply_markup=types.ReplyKeyboardRemove(),
     )
