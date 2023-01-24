@@ -290,10 +290,10 @@ async def send_lead_confirmation_message(
         bot,
         chat_id=message.chat.id,
         text=messages.LEAD_CONFIRMATION.format(
-            first_name=html_decoration.bold(state_data.first_name),
-            last_name=html_decoration.bold(state_data.last_name),
-            email=html_decoration.bold(state_data.email),
-            phone_number=html_decoration.bold(state_data.phone_number),
+            first_name=html_decoration.bold(state_data.first_name or ""),
+            last_name=html_decoration.bold(state_data.last_name or ""),
+            email=html_decoration.bold(state_data.email or ""),
+            phone_number=html_decoration.bold(state_data.phone_number or ""),
         ),
         reply_markup=get_keyboard_markup(
             buttons=[Buttons.YES.value, Buttons.NEED_CORRECTION.value]
