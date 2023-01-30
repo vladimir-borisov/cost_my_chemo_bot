@@ -1,4 +1,4 @@
-from aiogram import Dispatcher, executor, types
+from aiogram import Dispatcher, executor
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from logfmt_logger import getLogger
 
@@ -15,12 +15,7 @@ logger = getLogger(__name__)
 async def on_startup(dp: Dispatcher):
     init_handlers(dp)
     if SETTINGS.SET_COMMANDS:
-        await bot.set_my_commands(
-            commands=[
-                types.BotCommand(command="/start", description="Начать сначала"),
-                types.BotCommand(command="/stop", description="Стоп"),
-            ]
-        )
+        await bot.set_my_commands(commands=[])
     database = DB()
     await database.load_db()
     if SETTINGS.BOT_MODE is BotMode.WEBHOOK and WEBHOOK_SETTINGS.SET_WEBHOOK:

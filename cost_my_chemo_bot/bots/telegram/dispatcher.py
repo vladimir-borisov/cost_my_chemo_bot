@@ -118,11 +118,28 @@ async def send_course_message(
             )
         )
 
+    buttons.append(
+        types.InlineKeyboardButton(
+            text=Buttons.CUSTOM_COURSE.value.text,
+            callback_data=Buttons.CUSTOM_COURSE.value.callback_data,
+        )
+    )
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=messages.COURSE_CHOOSE,
         reply_markup=get_keyboard_markup(buttons=buttons),
+    )
+
+
+async def send_custom_course_message(
+    message: types.Message,
+) -> types.Message | SendMessage:
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        text=messages.CUSTOM_COURSE_INPUT,
+        reply_markup=get_keyboard_markup(),
     )
 
 
@@ -154,7 +171,8 @@ async def send_data_confirmation_message(
         nosology = await database.find_nosology_by_id(
             nosology_id=state_data.nosology_id
         )
-    course = await database.find_course_by_id(course_id=state_data.course_id)
+    # if state_data.is_custom_course:
+    # course = await database.find_course_by_id(course_id=state_data.course_id)
     html_decoration = HtmlDecoration()
     return await send_message(
         bot,
@@ -166,7 +184,7 @@ async def send_data_confirmation_message(
             nosology_name=html_decoration.bold(
                 nosology.nosologyName if nosology else ""
             ),
-            course_name=html_decoration.bold(course.Course),
+            course_name=html_decoration.bold(state_data.course_name),
         ),
         reply_markup=get_keyboard_markup(
             buttons=[Buttons.YES.value, Buttons.NEED_CORRECTION.value]
@@ -185,8 +203,14 @@ async def send_contacts_input_message(
         nosology = await database.find_nosology_by_id(
             nosology_id=state_data.nosology_id
         )
-    course = await database.find_course_by_id(course_id=state_data.course_id)
-    course_price = course.price(bsa=state_data.bsa)
+    course_name = state_data.course_name
+    if state_data.is_custom_course:
+        course_price = "Цена по запросу"
+    else:
+        course = await database.find_course_by_id(course_id=state_data.course_id)
+        course_price = course.price(bsa=state_data.bsa)
+        course_price = f"{course_price:.2f} {messages.CURRENCY}"
+
     html_decoration = HtmlDecoration()
     return await send_message(
         bot,
@@ -198,8 +222,8 @@ async def send_contacts_input_message(
             nosology_name=html_decoration.bold(
                 nosology.nosologyName if nosology else ""
             ),
-            course_name=html_decoration.bold(course.Course),
-            course_price=html_decoration.bold(f"{course_price:.2f}"),
+            course_name=html_decoration.bold(course_name),
+            course_price=html_decoration.bold(course_price),
         ),
         reply_markup=get_keyboard_markup(buttons=[Buttons.CONTACTS_INPUT.value]),
         parse_mode=ParseMode.HTML,

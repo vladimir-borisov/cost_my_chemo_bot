@@ -11,6 +11,8 @@ class StateData(BaseModel):
     category_id: str | None = None
     nosology_id: str | None = None
     course_id: str | None = None
+    is_custom_course: bool | None = None
+    course_name: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr | None = None
@@ -34,6 +36,7 @@ class Form(StatesGroup):
     category = State()
     nosology = State()
     course = State()
+    custom_course = State()
     data_confirmation = State()
     contacts_input = State()
     first_name = State()

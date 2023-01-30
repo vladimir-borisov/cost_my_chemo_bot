@@ -60,8 +60,20 @@ async def back_handler(
                 category_id=state_data.category_id,
                 nosology_id=state_data.nosology_id,
             )
+        case Form.custom_course.state:
+            await state.set_state(Form.course)
+            await state.update_data(
+                course_name=None, is_custom_course=None, course_id=None
+            )
+            return await dispatcher.send_course_message(
+                message=message,
+                category_id=state_data.category_id,
+                nosology_id=state_data.nosology_id,
+            )
         case Form.data_confirmation.state:
-            await state.update_data(data_confirmation=None)
+            await state.update_data(
+                data_confirmation=None,
+            )
             return await dispatcher.send_data_confirmation_message(
                 message=message,
                 state=state,

@@ -123,10 +123,15 @@ async def course_invalid(callback: types.CallbackQuery) -> bool:
         Buttons.BACK.value.callback_data,
         Buttons.YES.value.callback_data,
         Buttons.NEED_CORRECTION.value.callback_data,
+        Buttons.CUSTOM_COURSE.value.callback_data,
     ):
         return False
 
     return not await course_valid(callback=callback)
+
+
+async def enter_custom_course(callback: types.CallbackQuery) -> bool:
+    return callback.data == Buttons.CUSTOM_COURSE.value.callback_data
 
 
 async def data_confirmed(callback: types.CallbackQuery) -> bool:

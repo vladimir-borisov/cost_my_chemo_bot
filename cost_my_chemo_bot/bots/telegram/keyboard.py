@@ -18,6 +18,9 @@ class Buttons(enum.Enum):
         "Ввести контакты", callback_data="contacts_input"
     )
     SKIP = types.InlineKeyboardButton("Пропустить", callback_data="skip")
+    CUSTOM_COURSE = types.InlineKeyboardButton(
+        "Не нашли свой курс?", callback_data="custom_course"
+    )
 
 
 def get_keyboard_markup(

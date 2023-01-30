@@ -4,8 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import dispatcher, filters, messages
-from cost_my_chemo_bot.bots.telegram.send import send_message
+from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.config import SETTINGS
 
@@ -23,6 +22,7 @@ async def save_lead(message: types.Message, state: FSMContext):
         "FIELDS[EMAIL][0][VALUE_TYPE]": "WORK",
         "FIELDS[PHONE][0][VALUE]": state_data.phone_number,
         "FIELDS[PHONE][0][VALUE_TYPE]": "WORK",
+        "FIELDS[COMMENTS]": f"Курс: {state_data.course_name}",
     }
     logger.info("save lead: %s", params)
     async with httpx.AsyncClient(base_url=SETTINGS.BITRIX_URL) as client:
