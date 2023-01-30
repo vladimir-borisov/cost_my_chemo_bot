@@ -40,6 +40,7 @@ DATA_CONFIRMATION = dedent(
     Всё верно?
 """
 )
+PRICE_FOR_CUSTOM_COURSE = "Цена по запросу"
 CURRENCY = "рублей"
 DATA_CORRECT = dedent(
     """

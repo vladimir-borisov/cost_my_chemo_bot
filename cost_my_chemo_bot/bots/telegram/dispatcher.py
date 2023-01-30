@@ -205,7 +205,7 @@ async def send_contacts_input_message(
         )
     course_name = state_data.course_name
     if state_data.is_custom_course:
-        course_price = "Цена по запросу"
+        course_price = messages.PRICE_FOR_CUSTOM_COURSE
     else:
         course = await database.find_course_by_id(course_id=state_data.course_id)
         course_price = course.price(bsa=state_data.bsa)
