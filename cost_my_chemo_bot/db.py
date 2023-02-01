@@ -51,7 +51,7 @@ class Course(BaseModel):
     def normalize_coefficient(cls, v: typing.Any) -> decimal.Decimal:
         if isinstance(v, str):
             normalized = unicodedata.normalize("NFKD", v)
-            normalized = normalized.replace(" ", "").replace(",", ".")
+            normalized = normalized.replace(" ", "").replace(",", "")
             try:
                 return decimal.Decimal(normalized)
             except decimal.InvalidOperation:
