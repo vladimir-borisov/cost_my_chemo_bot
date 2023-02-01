@@ -54,7 +54,9 @@ async def back_handler(
                 state=state,
             )
         case Form.course.state:
-            await state.update_data(course_id=None)
+            await state.update_data(
+                course_id=None, is_custom_course=None, course_name=None
+            )
             return await dispatcher.send_course_message(
                 message=message,
                 category_id=state_data.category_id,
