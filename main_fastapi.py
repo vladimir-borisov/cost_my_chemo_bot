@@ -4,6 +4,7 @@ import secrets
 import uvicorn
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
+from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher.filters import Command, Text
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -23,21 +24,33 @@ from cost_my_chemo_bot.bots.telegram.handlers import (
     process_weight,
     process_weight_invalid,
 )
+
+from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.bots.telegram.state import Form
-from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
+from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS, StorageType, JSON_STORAGE_SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
 
 
 bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-storage = RedisStorage2(
-    host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
-    port=16916,
-    db=0,
-    username="cost_my_chemo_bot",
-    password=SETTINGS.REDIS_PASSWORD,
-)
+
+match SETTINGS.STORAGE_TYPE:
+    case StorageType.JSON:
+        storage = JSONStorage(JSON_STORAGE_SETTINGS.STATE_STORAGE_PATH)
+    case StorageType.GCLOUD:
+        storage = GcloudStorage()
+    case StorageType.REDIS:
+        storage = RedisStorage2(
+          host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
+          port=16916,
+          db=0,
+          username="cost_my_chemo_bot",
+          password=SETTINGS.REDIS_PASSWORD,
+        )
+    case _:
+        raise ValueError(f"Bullshit StorageType: {SETTINGS.STORAGE_TYPE}")
+
 dp = Dispatcher(bot, storage=storage)
 Bot.set_current(dp.bot)
 Dispatcher.set_current(dp)
@@ -87,6 +100,14 @@ async def init_bot():
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
     getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
+
+    if SETTINGS.SET_COMMANDS:
+        await bot.set_my_commands(
+            commands=[
+                types.BotCommand(command="/start", description="Начать сначала"),
+                types.BotCommand(command="/stop", description="Стоп"),
+            ]
+        )
 
     database = DB()
     Dispatcher.set_current(dp)

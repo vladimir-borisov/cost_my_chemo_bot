@@ -8,18 +8,18 @@ logger = getLogger(__name__)
 
 
 class Buttons(enum.Enum):
-    YES = types.InlineKeyboardButton(text="Да", callback_data="yes")
+    YES = types.InlineKeyboardButton(text="✅ Да", callback_data="yes")
     NEED_CORRECTION = types.InlineKeyboardButton(
-        text="Нет, нужно исправить", callback_data="need_correction"
+        text="✏ Нет, нужно исправить", callback_data="need_correction"
     )
-    BACK = types.InlineKeyboardButton("Назад", callback_data="back")
-    MENU = types.InlineKeyboardButton("Меню", callback_data="menu")
+    BACK = types.InlineKeyboardButton("↩ Назад", callback_data="back")
+    MENU = types.InlineKeyboardButton("#️⃣  В начало", callback_data="menu")
     CONTACTS_INPUT = types.InlineKeyboardButton(
-        "Ввести контакты", callback_data="contacts_input"
+        "☎ Ввести контакты", callback_data="contacts_input"
     )
-    SKIP = types.InlineKeyboardButton("Пропустить", callback_data="skip")
+    SKIP = types.InlineKeyboardButton("↪ Пропустить", callback_data="skip")
     CUSTOM_COURSE = types.InlineKeyboardButton(
-        "Не нашли свой курс?", callback_data="custom_course"
+        "❓Не нашли свой курс?", callback_data="custom_course"
     )
 
 

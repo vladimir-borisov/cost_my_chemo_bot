@@ -7,3 +7,4 @@ __pycache__/
 cloud.env
 cloud_env.yaml
 .deta/
+.idea
