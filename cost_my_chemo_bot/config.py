@@ -19,9 +19,8 @@ class Settings(BaseSettings):
     ONCO_MEDCONSULT_API_LOGIN: str
     ONCO_MEDCONSULT_API_PASSWORD: SecretStr
 
-    BITRIX_URL: HttpUrl = (
-        "https://headache-hemonc.bitrix24.ru/rest/25/ztkgcrsxyths0h0u/crm.lead.add.json"
-    )
+    BITRIX_URL: HttpUrl = "https://headache-hemonc.bitrix24.ru/rest/25"
+    BITRIX_TOKEN: SecretStr
 
     TELEGRAM_BOT_TOKEN: str
     LOG_LEVEL: int = Field(logging.INFO)

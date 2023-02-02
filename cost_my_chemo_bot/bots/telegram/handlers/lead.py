@@ -26,7 +26,10 @@ async def save_lead(message: types.Message, state: FSMContext):
     }
     logger.info("save lead: %s", params)
     async with httpx.AsyncClient(base_url=SETTINGS.BITRIX_URL) as client:
-        resp = await client.post("", params=params)
+        resp = await client.post(
+            f"{SETTINGS.BITRIX_TOKEN.get_secret_value()}/crm.lead.add.json",
+            params=params,
+        )
 
     if resp.status_code != 200:
         logger.error("save lead: %s", resp.text)
