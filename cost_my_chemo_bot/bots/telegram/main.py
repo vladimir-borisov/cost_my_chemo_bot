@@ -3,7 +3,6 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from logfmt_logger import getLogger
 
 # to register all handlers in dispatcher
-import cost_my_chemo_bot.bots.telegram.handlers  # noqa
 from cost_my_chemo_bot.bots.telegram.dispatcher import bot, dp
 from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS, BotMode

@@ -1,4 +1,4 @@
-from aiogram import types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -13,7 +13,6 @@ logger = getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.callback_query_handler(filters.category_valid, state=Form.category)
 async def process_category(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -32,7 +31,6 @@ async def process_category(
     return await dispatcher.send_nosology_message(message=message, state=state)
 
 
-@dispatcher.dp.callback_query_handler(filters.category_invalid, state=Form.category)
 async def process_category_invalid(
     callback: types.CallbackQuery,
 ) -> types.Message | SendMessage:
@@ -41,4 +39,14 @@ async def process_category_invalid(
         chat_id=callback.message.chat.id,
         text=messages.CATEGORY_WRONG,
         reply_markup=get_keyboard_markup(buttons=sorted(database.categories)),
+    )
+
+
+def init_category_handlers(dp: Dispatcher):
+    dp.register_callback_query_handler(
+        process_category, filters.category_valid, state=Form.category
+    )
+
+    dp.register_callback_query_handler(
+        process_category_invalid, filters.category_invalid, state=Form.category
     )

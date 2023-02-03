@@ -60,46 +60,6 @@ Bot.set_current(dp.bot)
 Dispatcher.set_current(dp)
 
 
-async def register_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(
-        cancel_handler, Text(equals=["stop"], ignore_case=True), state="*"
-    )
-    dp.register_message_handler(cancel_handler, Command(commands=["stop"]), state="*")
-
-    dp.register_callback_query_handler(back_handler, filters.back_valid, state="*")
-    dp.register_message_handler(back_handler, filters.back_valid, state="*")
-
-    dp.register_callback_query_handler(
-        process_category, filters.category_valid, state=Form.category
-    )
-
-    dp.register_callback_query_handler(
-        process_category_invalid, filters.category_invalid, state=Form.category
-    )
-
-    dp.register_message_handler(process_height, filters.height_valid, state=Form.height)
-
-    dp.register_message_handler(
-        process_height_invalid, filters.height_invalid, state=Form.height
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology, filters.nosology_valid, state=Form.nosology
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology_invalid, filters.nosology_invalid, state=Form.nosology
-    )
-
-    dp.register_message_handler(process_weight, filters.weight_valid, state=Form.weight)
-
-    dp.register_message_handler(
-        process_weight_invalid, filters.weight_invalid, state=Form.weight
-    )
-
-    init_handlers(dp)
-
-
 async def init_bot():
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
@@ -120,7 +80,7 @@ async def init_bot():
     if WEBHOOK_SETTINGS.SET_WEBHOOK:
         await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
 
-    await register_handlers(dp)
+    init_handlers(dp)
 
 
 app = FastAPI()

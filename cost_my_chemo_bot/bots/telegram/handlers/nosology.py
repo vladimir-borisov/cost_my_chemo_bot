@@ -1,4 +1,4 @@
-from aiogram import types
+from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from logfmt_logger import getLogger
 
@@ -12,7 +12,6 @@ logger = getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.callback_query_handler(filters.nosology_valid, state=Form.nosology)
 async def process_nosology(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message:
@@ -27,7 +26,6 @@ async def process_nosology(
     )
 
 
-@dispatcher.dp.callback_query_handler(filters.nosology_invalid, state=Form.nosology)
 async def process_nosology_invalid(message: types.Message, state: FSMContext):
     buttons = []
     data = await parse_state(state=state)
@@ -46,4 +44,14 @@ async def process_nosology_invalid(message: types.Message, state: FSMContext):
         chat_id=message.chat.id,
         text=messages.NOSOLOGY_WRONG,
         reply_markup=get_keyboard_markup(buttons=buttons),
+    )
+
+
+def init_nosology_handlers(dp: Dispatcher):
+    dp.register_callback_query_handler(
+        process_nosology, filters.nosology_valid, state=Form.nosology
+    )
+
+    dp.register_callback_query_handler(
+        process_nosology_invalid, filters.nosology_invalid, state=Form.nosology
     )

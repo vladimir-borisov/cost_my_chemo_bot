@@ -1,4 +1,4 @@
-from aiogram import types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -13,7 +13,6 @@ logger = getLogger(__name__)
 database = DB()
 
 
-@dispatcher.dp.message_handler(filters.height_valid, state=Form.height)
 async def process_height(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -22,11 +21,18 @@ async def process_height(
     return await dispatcher.send_weight_message(message=message)
 
 
-@dispatcher.dp.message_handler(filters.height_invalid, state=Form.height)
 async def process_height_invalid(message: types.Message):
     return await send_message(
         dispatcher.bot,
         chat_id=message.chat.id,
         text=messages.HEIGHT_WRONG,
         reply_markup=get_keyboard_markup(),
+    )
+
+
+def init_height_handlers(dp: Dispatcher):
+    dp.register_message_handler(process_height, filters.height_valid, state=Form.height)
+
+    dp.register_message_handler(
+        process_height_invalid, filters.height_invalid, state=Form.height
     )
