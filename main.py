@@ -6,27 +6,22 @@ from aiogram import Bot, Dispatcher, types
 from flask import Request
 from logfmt_logger import getLogger
 
+from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
+from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
 from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
-from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
+from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage, make_storage
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
 
 
-async def init_bot() -> Dispatcher:
+async def generate_dispatcher() -> Dispatcher:
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
 
-    database = DB()
-    await database.load_db()
-    bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-    storage = GcloudStorage()
-    dp = Dispatcher(bot, storage=storage)
-    Bot.set_current(dp.bot)
-    Dispatcher.set_current(dp)
-
-    init_handlers(dp)
-    return dp
+    bot = make_bot()
+    storage = make_storage()
+    return make_dispatcher(bot=bot, storage=storage)
 
 
 async def process_event(event) -> dict:
@@ -37,22 +32,21 @@ async def process_event(event) -> dict:
 
     logger.info("Update: " + str(event))
 
-    dp = await init_bot()
+    dp = await generate_dispatcher()
 
-    update = types.Update.to_object(event)
-    logger.info(f"new_update={update}")
-    results = await dp.process_update(update)
-    results = [json.loads(r.get_web_response().body) for r in results]
-    logger.info(f"results={results}")
-    if not results:
-        result = {}
-    else:
-        result = results[0]
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-    session = await dp.bot.get_session()
-    await session.close()
-    return result
+    try:
+        update = types.Update.to_object(event)
+        logger.info(f"new_update={update}")
+        results = await dp.process_update(update)
+        results = [json.loads(r.get_web_response().body) for r in results]
+        logger.info(f"results={results}")
+        if not results:
+            result = {}
+        else:
+            result = results[0]
+        return result
+    finally:
+        await close_bot(bot=dp.bot, dp=dp)
 
 
 @functions_framework.http

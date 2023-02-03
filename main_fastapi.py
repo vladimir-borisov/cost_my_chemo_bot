@@ -9,7 +9,6 @@ from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
 from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
-from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
 from cost_my_chemo_bot.bots.telegram.storage import make_storage
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
