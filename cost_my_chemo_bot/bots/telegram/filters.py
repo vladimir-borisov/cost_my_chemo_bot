@@ -146,6 +146,20 @@ async def contacts_input(callback: types.CallbackQuery) -> bool:
     return callback.data == Buttons.CONTACTS_INPUT.value.callback_data
 
 
+async def first_name_valid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
+    return bool(message.text)
+
+
+async def last_name_valid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
+    return bool(message.text)
+
+
 async def email_valid(message: types.Message) -> bool:
     if message.is_command():
         return False
@@ -157,6 +171,9 @@ async def email_valid(message: types.Message) -> bool:
 
 
 async def email_invalid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return not await email_valid(message)
 
 

@@ -1,4 +1,4 @@
-from aiogram import types
+from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -11,7 +11,6 @@ from cost_my_chemo_bot.bots.telegram.state import Form
 logger = getLogger(__name__)
 
 
-@dispatcher.dp.message_handler(filters.weight_valid, state=Form.weight)
 async def process_weight(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -20,11 +19,20 @@ async def process_weight(
     return await dispatcher.send_category_message(message=message)
 
 
-@dispatcher.dp.message_handler(filters.weight_invalid, state=Form.weight)
 async def process_weight_invalid(message: types.Message):
+    bot = Bot.get_current()
+
     return await send_message(
-        dispatcher.bot,
+        bot,
         chat_id=message.chat.id,
         text=messages.WEIGHT_WRONG,
         reply_markup=get_keyboard_markup(),
+    )
+
+
+def init_weight_handlers(dp: Dispatcher):
+    dp.register_message_handler(process_weight, filters.weight_valid, state=Form.weight)
+
+    dp.register_message_handler(
+        process_weight_invalid, filters.weight_invalid, state=Form.weight
     )

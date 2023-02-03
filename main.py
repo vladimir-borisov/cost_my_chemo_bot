@@ -2,86 +2,24 @@ import asyncio
 import json
 
 import functions_framework
-from aiogram import Bot, Dispatcher, types
-from aiogram.dispatcher.filters import Command, Text
+from aiogram import Dispatcher, types
 from flask import Request
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import filters
-from cost_my_chemo_bot.bots.telegram.handlers import (
-    back_handler,
-    cancel_handler,
-    init_handlers,
-    process_category,
-    process_category_invalid,
-    process_height,
-    process_height_invalid,
-    process_nosology,
-    process_nosology_invalid,
-    process_weight,
-    process_weight_invalid,
-)
-from cost_my_chemo_bot.bots.telegram.state import Form
-from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
+from cost_my_chemo_bot.bots.telegram.bot import close_bot, make_bot
+from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
+from cost_my_chemo_bot.bots.telegram.storage import make_storage
 from cost_my_chemo_bot.config import SETTINGS
-from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
 
 
-async def register_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(
-        cancel_handler, Text(equals=["stop"], ignore_case=True), state="*"
-    )
-    dp.register_message_handler(cancel_handler, Command(commands=["stop"]), state="*")
-
-    dp.register_callback_query_handler(back_handler, filters.back_valid, state="*")
-    dp.register_message_handler(back_handler, filters.back_valid, state="*")
-
-    dp.register_callback_query_handler(
-        process_category, filters.category_valid, state=Form.category
-    )
-
-    dp.register_callback_query_handler(
-        process_category_invalid, filters.category_invalid, state=Form.category
-    )
-
-    dp.register_message_handler(process_height, filters.height_valid, state=Form.height)
-
-    dp.register_message_handler(
-        process_height_invalid, filters.height_invalid, state=Form.height
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology, filters.nosology_valid, state=Form.nosology
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology_invalid, filters.nosology_invalid, state=Form.nosology
-    )
-
-    dp.register_message_handler(process_weight, filters.weight_valid, state=Form.weight)
-
-    dp.register_message_handler(
-        process_weight_invalid, filters.weight_invalid, state=Form.weight
-    )
-
-    init_handlers(dp)
-
-
-async def init_bot() -> Dispatcher:
+async def generate_dispatcher() -> Dispatcher:
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
 
-    database = DB()
-    await database.load_db()
-    bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-    storage = GcloudStorage()
-    dp = Dispatcher(bot, storage=storage)
-    Bot.set_current(dp.bot)
-    Dispatcher.set_current(dp)
-
-    await register_handlers(dp)
-    return dp
+    bot = make_bot()
+    storage = make_storage()
+    return make_dispatcher(bot=bot, storage=storage)
 
 
 async def process_event(event) -> dict:
@@ -92,22 +30,21 @@ async def process_event(event) -> dict:
 
     logger.info("Update: " + str(event))
 
-    dp = await init_bot()
+    dp = await generate_dispatcher()
 
-    update = types.Update.to_object(event)
-    logger.info(f"new_update={update}")
-    results = await dp.process_update(update)
-    results = [json.loads(r.get_web_response().body) for r in results]
-    logger.info(f"results={results}")
-    if not results:
-        result = {}
-    else:
-        result = results[0]
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-    session = await dp.bot.get_session()
-    await session.close()
-    return result
+    try:
+        update = types.Update.to_object(event)
+        logger.info(f"new_update={update}")
+        results = await dp.process_update(update)
+        results = [json.loads(r.get_web_response().body) for r in results]
+        logger.info(f"results={results}")
+        if not results:
+            result = {}
+        else:
+            result = results[0]
+        return result
+    finally:
+        await close_bot(bot=dp.bot, dp=dp)
 
 
 @functions_framework.http

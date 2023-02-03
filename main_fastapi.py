@@ -3,101 +3,17 @@ import secrets
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
-from aiogram.dispatcher.filters import Command, Text
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import filters
-from cost_my_chemo_bot.bots.telegram.handlers import (
-    back_handler,
-    cancel_handler,
-    init_handlers,
-    process_category,
-    process_category_invalid,
-    process_height,
-    process_height_invalid,
-    process_nosology,
-    process_nosology_invalid,
-    process_weight,
-    process_weight_invalid,
-)
-from cost_my_chemo_bot.bots.telegram.state import Form
+from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
+from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
+from cost_my_chemo_bot.bots.telegram.storage import make_storage
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
-
-
-bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-storage = RedisStorage2(
-    host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
-    port=16916,
-    db=0,
-    username="cost_my_chemo_bot",
-    password=SETTINGS.REDIS_PASSWORD,
-)
-dp = Dispatcher(bot, storage=storage)
-Bot.set_current(dp.bot)
-Dispatcher.set_current(dp)
-
-
-async def register_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(
-        cancel_handler, Text(equals=["stop"], ignore_case=True), state="*"
-    )
-    dp.register_message_handler(cancel_handler, Command(commands=["stop"]), state="*")
-
-    dp.register_callback_query_handler(back_handler, filters.back_valid, state="*")
-    dp.register_message_handler(back_handler, filters.back_valid, state="*")
-
-    dp.register_callback_query_handler(
-        process_category, filters.category_valid, state=Form.category
-    )
-
-    dp.register_callback_query_handler(
-        process_category_invalid, filters.category_invalid, state=Form.category
-    )
-
-    dp.register_message_handler(process_height, filters.height_valid, state=Form.height)
-
-    dp.register_message_handler(
-        process_height_invalid, filters.height_invalid, state=Form.height
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology, filters.nosology_valid, state=Form.nosology
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology_invalid, filters.nosology_invalid, state=Form.nosology
-    )
-
-    dp.register_message_handler(process_weight, filters.weight_valid, state=Form.weight)
-
-    dp.register_message_handler(
-        process_weight_invalid, filters.weight_invalid, state=Form.weight
-    )
-
-    init_handlers(dp)
-
-
-async def init_bot():
-    getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
-    getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
-    getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
-
-    database = DB()
-    Dispatcher.set_current(dp)
-    Bot.set_current(bot)
-    await database.load_db()
-    if WEBHOOK_SETTINGS.SET_WEBHOOK:
-        await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
-
-    await register_handlers(dp)
-
-
 app = FastAPI()
 security = HTTPBasic()
 
@@ -126,7 +42,9 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.on_event("startup")
 async def on_startup():
-    await init_bot()
+    bot = Bot.get_current()
+    dp = Dispatcher.get_current()
+    await init_bot(bot, dp)
 
 
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
@@ -167,18 +85,19 @@ async def reload_db(credentials: HTTPBasicCredentials = Depends(check_creds)):
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    Dispatcher.set_current(dp)
-    Bot.set_current(bot)
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-    await DB.close()
-    session = await dp.bot.get_session()
-    await session.close()
+    bot = Bot.get_current()
+    dp = Dispatcher.get_current()
+    await close_bot(bot=bot, dp=dp)
 
 
 if __name__ == "__main__":
+    bot = make_bot()
+    storage = make_storage()
+    dp = make_dispatcher(bot, storage=storage)
+    Bot.set_current(dp.bot)
+    Dispatcher.set_current(dp)
     uvicorn.run(
         app,
-        host=WEBHOOK_SETTINGS.WEBAPP_HOST,
-        port=WEBHOOK_SETTINGS.WEBAPP_PORT,
+        host=WEBHOOK_SETTINGS.HOST,
+        port=WEBHOOK_SETTINGS.PORT,
     )

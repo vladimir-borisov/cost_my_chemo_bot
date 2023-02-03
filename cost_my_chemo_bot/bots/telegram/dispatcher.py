@@ -1,7 +1,7 @@
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.storage import BaseStorage
 from aiogram.dispatcher.webhook import SendMessage
 from aiogram.types import ParseMode
 from aiogram.utils.text_decorations import HtmlDecoration
@@ -11,40 +11,34 @@ from cost_my_chemo_bot.bots.telegram import messages
 from cost_my_chemo_bot.bots.telegram.keyboard import Buttons, get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
-from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
-from cost_my_chemo_bot.config import JSON_STORAGE_SETTINGS, SETTINGS, StorageType
 from cost_my_chemo_bot.db import DB, Course
 
 logger = getLogger(__name__)
-
-bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-if SETTINGS.STORAGE_TYPE is StorageType.JSON:
-    storage = JSONStorage(JSON_STORAGE_SETTINGS.STATE_STORAGE_PATH)
-elif SETTINGS.STORAGE_TYPE is StorageType.GCLOUD:
-    storage = GcloudStorage()
-# storage = FirestoreStorage()
-dp = Dispatcher(bot, storage=storage)
 database = DB()
 
 
-async def send_welcome_message(
-    message: types.Message, initial: bool = False
-) -> types.Message | SendMessage:
-    text = ""
-    if initial:
-        text += messages.WELCOME
+def make_dispatcher(bot: Bot, storage: BaseStorage) -> Dispatcher:
+    return Dispatcher(bot, storage=storage)
 
-    kb = types.InlineKeyboardMarkup()
-    kb.add(Buttons.YES.value)
+
+async def send_welcome_message(message: types.Message) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
+    text = messages.WELCOME
+
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(Buttons.YES.value)
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=text,
-        reply_markup=kb,
+        reply_markup=keyboard,
     )
 
 
 async def send_height_message(message: types.Message) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     text = messages.HEIGHT_INPUT
     return await send_message(
         bot,
@@ -55,6 +49,8 @@ async def send_height_message(message: types.Message) -> types.Message | SendMes
 
 
 async def send_weight_message(message: types.Message) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     return await send_message(
         bot,
         chat_id=message.chat.id,
@@ -64,6 +60,8 @@ async def send_weight_message(message: types.Message) -> types.Message | SendMes
 
 
 async def send_category_message(message: types.Message) -> types.Message:
+    bot = Bot.get_current()
+
     buttons = []
     for category in sorted(database.categories, key=lambda item: item.categoryName):
         buttons.append(
@@ -83,6 +81,8 @@ async def send_category_message(message: types.Message) -> types.Message:
 async def send_nosology_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     buttons = []
     data = await parse_state(state=state)
     nosologies = await database.find_nosologies_by_category_id(
@@ -106,6 +106,8 @@ async def send_nosology_message(
 async def send_course_message(
     message: types.Message, category_id: str, nosology_id: str | None
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     recommended_courses: list[Course] = await database.find_courses(
         category_id=category_id, nosology_id=nosology_id
     )
@@ -135,6 +137,8 @@ async def send_course_message(
 async def send_custom_course_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     return await send_message(
         bot,
         chat_id=message.chat.id,
@@ -146,6 +150,8 @@ async def send_custom_course_message(
 async def send_lead_message(
     message: types.Message, add_text: str | None = None
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     if add_text is None:
         add_text = ""
 
@@ -164,6 +170,8 @@ async def send_lead_message(
 async def send_data_confirmation_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     state_data = await parse_state(state=state)
     category = await database.find_category_by_id(category_id=state_data.category_id)
     nosology = ""
@@ -196,6 +204,8 @@ async def send_data_confirmation_message(
 async def send_contacts_input_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     state_data = await parse_state(state=state)
     category = await database.find_category_by_id(category_id=state_data.category_id)
     nosology = ""
@@ -233,6 +243,7 @@ async def send_contacts_input_message(
 async def send_first_name_message(
     message: types.Message, add_text: str | None = None
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
     if add_text is None:
         add_text = ""
     text = md.text(add_text, md.text(messages.LEAD_FIRST_NAME), sep="\n")
@@ -248,6 +259,8 @@ async def send_first_name_message(
 async def send_last_name_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     text = messages.LEAD_LAST_NAME
     return await send_message(
         bot,
@@ -260,6 +273,8 @@ async def send_last_name_message(
 async def send_email_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     text = messages.LEAD_EMAIL
     return await send_message(
         bot,
@@ -272,6 +287,8 @@ async def send_email_message(
 async def send_email_invalid_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     text = messages.LEAD_EMAIL_WRONG
     return await send_message(
         bot,
@@ -284,6 +301,8 @@ async def send_email_invalid_message(
 async def send_phone_number_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     text = messages.LEAD_PHONE_NUMBER
     return await send_message(
         bot,
@@ -296,6 +315,8 @@ async def send_phone_number_message(
 async def send_phone_number_invalid_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     text = messages.LEAD_PHONE_NUMBER_WRONG
     return await send_message(
         bot,
@@ -308,6 +329,8 @@ async def send_phone_number_invalid_message(
 async def send_lead_confirmation_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     state_data = await parse_state(state=state)
     html_decoration = HtmlDecoration()
     return await send_message(
@@ -329,6 +352,8 @@ async def send_lead_confirmation_message(
 async def send_final_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     return await send_message(
         bot,
         chat_id=message.chat.id,

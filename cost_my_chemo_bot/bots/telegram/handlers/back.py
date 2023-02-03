@@ -1,4 +1,4 @@
-from aiogram import types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -10,8 +10,6 @@ from cost_my_chemo_bot.config import SETTINGS
 logger = getLogger(__name__, level=SETTINGS.LOG_LEVEL)
 
 
-@dispatcher.dp.callback_query_handler(filters.back_valid, state="*")
-@dispatcher.dp.message_handler(filters.back_valid, state="*")
 async def back_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
@@ -20,13 +18,13 @@ async def back_handler(
     else:
         message = callback_or_message
     current_state = await state.get_state()
+
     logger.debug("back from state: %s", current_state)
     if current_state is None:
-        await Form.last()
-        current_state = await Form.previous()
+        current_state = await Form.first()
     else:
-
         current_state = await Form.previous()
+
     logger.debug("current state: %s", current_state)
     state_data = await parse_state(state=state)
     logger.debug("state data: %s", state_data)
@@ -98,3 +96,8 @@ async def back_handler(
         case Form.phone_number.state:
             await state.update_data(phone_number=None)
             return await dispatcher.send_phone_number_message(message=message)
+
+
+def init_back_handlers(dp: Dispatcher):
+    dp.register_callback_query_handler(back_handler, filters.back_valid, state="*")
+    dp.register_message_handler(back_handler, filters.back_valid, state="*")
