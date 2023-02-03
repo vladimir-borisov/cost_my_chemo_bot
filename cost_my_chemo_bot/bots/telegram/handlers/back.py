@@ -18,13 +18,13 @@ async def back_handler(
     else:
         message = callback_or_message
     current_state = await state.get_state()
+
     logger.debug("back from state: %s", current_state)
     if current_state is None:
-        await Form.last()
-        current_state = await Form.previous()
+        current_state = await Form.first()
     else:
-
         current_state = await Form.previous()
+
     logger.debug("current state: %s", current_state)
     state_data = await parse_state(state=state)
     logger.debug("state data: %s", state_data)
