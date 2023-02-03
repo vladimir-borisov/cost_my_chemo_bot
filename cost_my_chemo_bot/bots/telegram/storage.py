@@ -16,7 +16,12 @@ from aiogram.dispatcher.storage import BaseStorage
 from gcloud.aio.storage import Storage
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.config import JSON_STORAGE_SETTINGS, SETTINGS, StorageType
+from cost_my_chemo_bot.config import (
+    JSON_STORAGE_SETTINGS,
+    REDIS_SETTINGS,
+    SETTINGS,
+    StorageType,
+)
 
 try:
     from google.cloud import firestore
@@ -509,11 +514,14 @@ def make_storage() -> JSONStorage | GcloudStorage | RedisStorage2:
             return GcloudStorage()
         case StorageType.REDIS:
             return RedisStorage2(
-                host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
-                port=16916,
-                db=0,
-                username="cost_my_chemo_bot",
-                password=SETTINGS.REDIS_PASSWORD,
+                host=REDIS_SETTINGS.REDIS_HOST,
+                port=REDIS_SETTINGS.REDIS_PORT,
+                db=REDIS_SETTINGS.REDIS_DB,
+                username=REDIS_SETTINGS.REDIS_USERNAME,
+                password=REDIS_SETTINGS.REDIS_PASSWORD,
+                state_ttl=REDIS_SETTINGS.STATE_TTL,
+                data_ttl=REDIS_SETTINGS.DATA_TTL,
+                bucket_ttl=REDIS_SETTINGS.BUCKET_TTL,
             )
         case _:
             raise ValueError(f"Bullshit StorageType: {SETTINGS.STORAGE_TYPE}")
