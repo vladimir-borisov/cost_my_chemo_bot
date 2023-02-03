@@ -26,5 +26,5 @@ serve_function_local: ## Serve google cloud function locally
 serve_aiogram: ## Serve aiogram bot locally
 	python main_aiogram.py
 
-make serve_fastapi: ## Serve fastapi bot locally
+serve_fastapi: ## Serve fastapi bot locally
 	python main_fastapi.py
