@@ -98,6 +98,6 @@ if __name__ == "__main__":
     Dispatcher.set_current(dp)
     uvicorn.run(
         app,
-        host=WEBHOOK_SETTINGS.WEBAPP_HOST,
-        port=WEBHOOK_SETTINGS.WEBAPP_PORT,
+        host=WEBHOOK_SETTINGS.HOST,
+        port=WEBHOOK_SETTINGS.PORT,
     )

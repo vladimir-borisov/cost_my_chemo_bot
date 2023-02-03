@@ -36,6 +36,6 @@ if __name__ == "__main__":
             skip_updates=True,
             on_startup=on_startup,
             on_shutdown=on_shutdown,
-            host=WEBHOOK_SETTINGS.WEBAPP_HOST,
-            port=WEBHOOK_SETTINGS.WEBAPP_PORT,
+            host=WEBHOOK_SETTINGS.HOST,
+            port=WEBHOOK_SETTINGS.PORT,
         )

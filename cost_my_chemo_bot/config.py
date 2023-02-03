@@ -41,8 +41,8 @@ class WebhookSettings(BaseSettings):
     WEBHOOK_PATH: str = "/api"
 
     # webserver settings
-    WEBAPP_HOST: str = "0.0.0.0"  # or ip
-    WEBAPP_PORT: int = 8080
+    HOST: str = "0.0.0.0"  # or ip
+    PORT: int = 8080
 
     @property
     def webhook_url(self) -> str:
