@@ -171,6 +171,9 @@ async def email_valid(message: types.Message) -> bool:
 
 
 async def email_invalid(message: types.Message) -> bool:
+    if message.is_command():
+        return False
+
     return not await email_valid(message)
 
 
