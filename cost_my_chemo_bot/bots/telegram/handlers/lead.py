@@ -23,7 +23,7 @@ async def save_lead(message: types.Message, state: FSMContext):
         "FIELDS[PHONE][0][VALUE]": state_data.phone_number,
         "FIELDS[PHONE][0][VALUE_TYPE]": "WORK",
         "FIELDS[COMMENTS]": f"""
-                                 Курс: {state_data.course_name} | Вес: {state_data.course_name} | Рост: {state_data.height} 
+                                 Курс: {state_data.course_name} | Вес: {state_data.weight} | Рост: {state_data.height} 
                              """,
     }
     logger.info("save lead: %s", params)
