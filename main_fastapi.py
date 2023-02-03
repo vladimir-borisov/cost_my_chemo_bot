@@ -3,8 +3,8 @@ import secrets
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from aiogram.contrib.fsm_storage.files import JSONStorage
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from aiogram.dispatcher.filters import Command, Text
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -24,10 +24,14 @@ from cost_my_chemo_bot.bots.telegram.handlers import (
     process_weight,
     process_weight_invalid,
 )
-
-from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.bots.telegram.state import Form
-from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS, StorageType, JSON_STORAGE_SETTINGS
+from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
+from cost_my_chemo_bot.config import (
+    JSON_STORAGE_SETTINGS,
+    SETTINGS,
+    WEBHOOK_SETTINGS,
+    StorageType,
+)
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
@@ -42,11 +46,11 @@ match SETTINGS.STORAGE_TYPE:
         storage = GcloudStorage()
     case StorageType.REDIS:
         storage = RedisStorage2(
-          host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
-          port=16916,
-          db=0,
-          username="cost_my_chemo_bot",
-          password=SETTINGS.REDIS_PASSWORD,
+            host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
+            port=16916,
+            db=0,
+            username="cost_my_chemo_bot",
+            password=SETTINGS.REDIS_PASSWORD,
         )
     case _:
         raise ValueError(f"Bullshit StorageType: {SETTINGS.STORAGE_TYPE}")
