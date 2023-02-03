@@ -1,10 +1,10 @@
-from aiogram import types, Dispatcher
+from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command, Text
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import dispatcher, messages
+from cost_my_chemo_bot.bots.telegram import messages
 from cost_my_chemo_bot.bots.telegram.send import send_message
 
 logger = getLogger(__name__)
@@ -13,6 +13,7 @@ logger = getLogger(__name__)
 async def cancel_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
@@ -22,7 +23,7 @@ async def cancel_handler(
     logger.info("Cancelling state %r", current_state)
     await state.finish()
     return await send_message(
-        dispatcher.bot,
+        bot,
         chat_id=message.chat.id,
         text=messages.GOODBYE,
         reply_markup=types.ReplyKeyboardRemove(),

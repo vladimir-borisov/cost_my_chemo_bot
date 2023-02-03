@@ -3,64 +3,21 @@ import secrets
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.files import JSONStorage
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
-from aiogram.dispatcher.filters import Command, Text
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import filters
-from cost_my_chemo_bot.bots.telegram.handlers import (
-    back_handler,
-    cancel_handler,
-    init_handlers,
-    process_category,
-    process_category_invalid,
-    process_height,
-    process_height_invalid,
-    process_nosology,
-    process_nosology_invalid,
-    process_weight,
-    process_weight_invalid,
-)
-from cost_my_chemo_bot.bots.telegram.state import Form
-from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
-from cost_my_chemo_bot.config import (
-    JSON_STORAGE_SETTINGS,
-    SETTINGS,
-    WEBHOOK_SETTINGS,
-    StorageType,
-)
+from cost_my_chemo_bot.bots.telegram.bot import make_bot
+from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
+from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
+from cost_my_chemo_bot.bots.telegram.storage import make_storage
+from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
 
 
-bot = Bot(token=SETTINGS.TELEGRAM_BOT_TOKEN)
-
-match SETTINGS.STORAGE_TYPE:
-    case StorageType.JSON:
-        storage = JSONStorage(JSON_STORAGE_SETTINGS.STATE_STORAGE_PATH)
-    case StorageType.GCLOUD:
-        storage = GcloudStorage()
-    case StorageType.REDIS:
-        storage = RedisStorage2(
-            host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
-            port=16916,
-            db=0,
-            username="cost_my_chemo_bot",
-            password=SETTINGS.REDIS_PASSWORD,
-        )
-    case _:
-        raise ValueError(f"Bullshit StorageType: {SETTINGS.STORAGE_TYPE}")
-
-dp = Dispatcher(bot, storage=storage)
-Bot.set_current(dp.bot)
-Dispatcher.set_current(dp)
-
-
-async def init_bot():
+async def init_bot(bot: Bot, dp: Dispatcher):
     getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
     getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
     getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
@@ -162,6 +119,11 @@ async def on_shutdown():
 
 
 if __name__ == "__main__":
+    bot = make_bot()
+    storage = make_storage()
+    dp = make_dispatcher(bot, storage=storage)
+    Bot.set_current(dp.bot)
+    Dispatcher.set_current(dp)
     uvicorn.run(
         app,
         host=WEBHOOK_SETTINGS.WEBAPP_HOST,

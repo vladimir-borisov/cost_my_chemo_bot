@@ -12,6 +12,7 @@ class BotMode(enum.Enum):
 class StorageType(str, enum.Enum):
     JSON = "json"
     GCLOUD = "gcloud"
+    REDIS = "redis"
 
 
 class Settings(BaseSettings):

@@ -22,3 +22,6 @@ set_webhook_local:  ## Set webhook to local
 
 serve_function_local: ## Serve google cloud function locally
 	bash scripts/serve_function_local.sh
+
+serve_aiogram: ## Serve aiogram bot locally
+	python main_aiogram.py

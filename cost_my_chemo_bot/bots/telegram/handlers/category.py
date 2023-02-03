@@ -1,4 +1,4 @@
-from aiogram import Dispatcher, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -34,8 +34,10 @@ async def process_category(
 async def process_category_invalid(
     callback: types.CallbackQuery,
 ) -> types.Message | SendMessage:
+    bot = Bot.get_current()
+
     return await send_message(
-        dispatcher.bot,
+        bot,
         chat_id=callback.message.chat.id,
         text=messages.CATEGORY_WRONG,
         reply_markup=get_keyboard_markup(buttons=sorted(database.categories)),

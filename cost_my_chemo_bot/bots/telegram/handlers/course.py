@@ -1,4 +1,4 @@
-from aiogram import Dispatcher, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -27,13 +27,15 @@ async def process_course(
 
 
 async def process_course_invalid(callback: types.CallbackQuery, state: FSMContext):
+    bot = Bot.get_current()
+
     message = callback.message
     data = await parse_state(state=state)
     courses = await database.find_courses(
         category_id=data.category_id, nosology_id=data.nosology_id
     )
     return await send_message(
-        dispatcher.bot,
+        bot,
         chat_id=message.chat.id,
         text=messages.COURSE_WRONG,
         reply_markup=get_keyboard_markup(

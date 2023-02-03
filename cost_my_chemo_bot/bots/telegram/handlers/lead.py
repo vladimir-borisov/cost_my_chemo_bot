@@ -130,8 +130,12 @@ def init_lead_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         process_contacts_input, filters.contacts_input, state=Form.contacts_input
     )
-    dp.register_message_handler(process_first_name, state=Form.first_name)
-    dp.register_message_handler(process_last_name, state=Form.last_name)
+    dp.register_message_handler(
+        process_first_name, filters.first_name_valid, state=Form.first_name
+    )
+    dp.register_message_handler(
+        process_last_name, filters.last_name_valid, state=Form.last_name
+    )
     dp.register_message_handler(process_email, filters.email_valid, state=Form.email)
     dp.register_message_handler(
         process_email_invalid, filters.email_invalid, state=Form.email

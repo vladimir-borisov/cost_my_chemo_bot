@@ -13,19 +13,17 @@ logger = getLogger(__name__)
 async def welcome_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
-    logger.info(__name__)
+    dp = Dispatcher.get_current()
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
         message = callback_or_message
 
-    if hasattr(dispatcher.dp.storage, "release_lock"):
+    if hasattr(dp.storage, "release_lock"):
         logger.info(
             "Releasing lock",
         )
-        await dispatcher.dp.storage.release_lock(
-            chat=message.chat.id, user=message.from_user.id
-        )
+        await dp.storage.release_lock(chat=message.chat.id, user=message.from_user.id)
 
     current_state = await state.get_state()
     if current_state is not None:
@@ -34,7 +32,7 @@ async def welcome_handler(
 
     await state.update_data(initial=True)
     await state.set_state(Form.initial)
-    return await dispatcher.send_welcome_message(message=message, initial=True)
+    return await dispatcher.send_welcome_message(message=message)
 
 
 async def process_initial_step(

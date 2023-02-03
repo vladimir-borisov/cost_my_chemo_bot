@@ -3,70 +3,15 @@ import json
 
 import functions_framework
 from aiogram import Bot, Dispatcher, types
-from aiogram.dispatcher.filters import Command, Text
 from flask import Request
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram import filters
-from cost_my_chemo_bot.bots.telegram.handlers import (
-    back_handler,
-    cancel_handler,
-    init_handlers,
-    process_category,
-    process_category_invalid,
-    process_height,
-    process_height_invalid,
-    process_nosology,
-    process_nosology_invalid,
-    process_weight,
-    process_weight_invalid,
-)
-from cost_my_chemo_bot.bots.telegram.state import Form
+from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
 from cost_my_chemo_bot.bots.telegram.storage import GcloudStorage
 from cost_my_chemo_bot.config import SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
-
-
-async def register_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(
-        cancel_handler, Text(equals=["stop"], ignore_case=True), state="*"
-    )
-    dp.register_message_handler(cancel_handler, Command(commands=["stop"]), state="*")
-
-    dp.register_callback_query_handler(back_handler, filters.back_valid, state="*")
-    dp.register_message_handler(back_handler, filters.back_valid, state="*")
-
-    dp.register_callback_query_handler(
-        process_category, filters.category_valid, state=Form.category
-    )
-
-    dp.register_callback_query_handler(
-        process_category_invalid, filters.category_invalid, state=Form.category
-    )
-
-    dp.register_message_handler(process_height, filters.height_valid, state=Form.height)
-
-    dp.register_message_handler(
-        process_height_invalid, filters.height_invalid, state=Form.height
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology, filters.nosology_valid, state=Form.nosology
-    )
-
-    dp.register_callback_query_handler(
-        process_nosology_invalid, filters.nosology_invalid, state=Form.nosology
-    )
-
-    dp.register_message_handler(process_weight, filters.weight_valid, state=Form.weight)
-
-    dp.register_message_handler(
-        process_weight_invalid, filters.weight_invalid, state=Form.weight
-    )
-
-    init_handlers(dp)
 
 
 async def init_bot() -> Dispatcher:
@@ -80,7 +25,7 @@ async def init_bot() -> Dispatcher:
     Bot.set_current(dp.bot)
     Dispatcher.set_current(dp)
 
-    await register_handlers(dp)
+    init_handlers(dp)
     return dp
 
 

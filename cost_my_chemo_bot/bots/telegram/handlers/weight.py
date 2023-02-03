@@ -1,4 +1,4 @@
-from aiogram import Dispatcher, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.webhook import SendMessage
 from logfmt_logger import getLogger
@@ -20,8 +20,10 @@ async def process_weight(
 
 
 async def process_weight_invalid(message: types.Message):
+    bot = Bot.get_current()
+
     return await send_message(
-        dispatcher.bot,
+        bot,
         chat_id=message.chat.id,
         text=messages.WEIGHT_WRONG,
         reply_markup=get_keyboard_markup(),

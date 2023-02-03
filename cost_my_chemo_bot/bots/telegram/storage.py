@@ -10,18 +10,21 @@ import typing
 from typing import AnyStr, Dict, Generator, List, Optional, Tuple, Union
 
 import aiohttp
+from aiogram.contrib.fsm_storage.files import JSONStorage
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
+from aiogram.dispatcher.storage import BaseStorage
+from gcloud.aio.storage import Storage
+from logfmt_logger import getLogger
+
+from cost_my_chemo_bot.config import JSON_STORAGE_SETTINGS, SETTINGS, StorageType
 
 try:
     from google.cloud import firestore
 except ModuleNotFoundError as e:
     import warnings
 
-    warnings.warn("Install motor with `pip install google-cloud-firestore`")
+    warnings.warn("Install firestore with `pip install google-cloud-firestore`")
     raise e
-
-from aiogram.dispatcher.storage import BaseStorage
-from gcloud.aio.storage import Storage
-from logfmt_logger import getLogger
 
 STATE = "aiogram_state"
 DATA = "aiogram_data"
@@ -496,6 +499,24 @@ class GcloudStorage(BaseStorage):
                     await storage.delete(
                         bucket=self.bucket_name, object_name=f"{chat}/{user}.json"
                     )
+
+
+def make_storage() -> JSONStorage | GcloudStorage | RedisStorage2:
+    match SETTINGS.STORAGE_TYPE:
+        case StorageType.JSON:
+            return JSONStorage(JSON_STORAGE_SETTINGS.STATE_STORAGE_PATH)
+        case StorageType.GCLOUD:
+            return GcloudStorage()
+        case StorageType.REDIS:
+            return RedisStorage2(
+                host="redis-16916.c55.eu-central-1-1.ec2.cloud.redislabs.com",
+                port=16916,
+                db=0,
+                username="cost_my_chemo_bot",
+                password=SETTINGS.REDIS_PASSWORD,
+            )
+        case _:
+            raise ValueError(f"Bullshit StorageType: {SETTINGS.STORAGE_TYPE}")
 
 
 if __name__ == "__main__":
