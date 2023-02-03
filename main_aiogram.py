@@ -2,7 +2,7 @@ from aiogram import Dispatcher, executor, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram.bot import make_bot
+from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
 from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
 from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
 from cost_my_chemo_bot.bots.telegram.storage import make_storage
@@ -13,34 +13,11 @@ logger = getLogger(__name__)
 
 
 async def on_startup(dp: Dispatcher):
-    init_handlers(dp)
-    if SETTINGS.SET_COMMANDS:
-        await bot.set_my_commands(
-            commands=[
-                types.BotCommand(command="/start", description="Начать сначала"),
-                types.BotCommand(command="/stop", description="Стоп"),
-            ]
-        )
-    database = DB()
-    await database.load_db()
-    if SETTINGS.BOT_MODE is BotMode.WEBHOOK and WEBHOOK_SETTINGS.SET_WEBHOOK:
-        logger.info(
-            "set webhook to url: %s: %s",
-            WEBHOOK_SETTINGS.webhook_url,
-            await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url),
-        )
+    await init_bot(bot=dp.bot, dp=dp)
 
 
 async def on_shutdown(dp):
-    logger.warning("Shutting down...")
-
-    if SETTINGS.BOT_MODE is BotMode.WEBHOOK and WEBHOOK_SETTINGS.SET_WEBHOOK:
-        await bot.delete_webhook()
-
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-
-    logger.warning("Bye!")
+    await close_bot(bot=dp.bot, dp=dp)
 
 
 if __name__ == "__main__":

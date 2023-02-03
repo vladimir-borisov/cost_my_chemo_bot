@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from logfmt_logger import getLogger
 
-from cost_my_chemo_bot.bots.telegram.bot import make_bot
+from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
 from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
 from cost_my_chemo_bot.bots.telegram.handlers import init_handlers
 from cost_my_chemo_bot.bots.telegram.storage import make_storage
@@ -15,31 +15,6 @@ from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
 from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
-
-
-async def init_bot(bot: Bot, dp: Dispatcher):
-    getLogger("aiogram", level=SETTINGS.LOG_LEVEL)
-    getLogger("uvicorn", level=SETTINGS.LOG_LEVEL)
-    getLogger("asyncio", level=SETTINGS.LOG_LEVEL)
-
-    if SETTINGS.SET_COMMANDS:
-        await bot.set_my_commands(
-            commands=[
-                types.BotCommand(command="/start", description="Начать сначала"),
-                types.BotCommand(command="/stop", description="Стоп"),
-            ]
-        )
-
-    database = DB()
-    Dispatcher.set_current(dp)
-    Bot.set_current(bot)
-    await database.load_db()
-    if WEBHOOK_SETTINGS.SET_WEBHOOK:
-        await bot.set_webhook(WEBHOOK_SETTINGS.webhook_url)
-
-    init_handlers(dp)
-
-
 app = FastAPI()
 security = HTTPBasic()
 
@@ -68,7 +43,9 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.on_event("startup")
 async def on_startup():
-    await init_bot()
+    bot = Bot.get_current()
+    dp = Dispatcher.get_current()
+    await init_bot(bot, dp)
 
 
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
@@ -109,13 +86,9 @@ async def reload_db(credentials: HTTPBasicCredentials = Depends(check_creds)):
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    Dispatcher.set_current(dp)
-    Bot.set_current(bot)
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-    await DB.close()
-    session = await dp.bot.get_session()
-    await session.close()
+    bot = Bot.get_current()
+    dp = Dispatcher.get_current()
+    await close_bot(bot=bot, dp=dp)
 
 
 if __name__ == "__main__":
