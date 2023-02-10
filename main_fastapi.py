@@ -41,7 +41,7 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
     return credentials.username
 
 
-@functools.lru_cache(maxsize=None)
+# @functools.lru_cache(maxsize=None)
 def get_dispatcher() -> Dispatcher:
     bot = make_bot()
     storage = make_storage()
