@@ -42,16 +42,20 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.on_event("startup")
 async def on_startup():
-    bot = Bot.get_current()
-    dp = Dispatcher.get_current()
+    bot = make_bot()
+    storage = make_storage()
+    dp = make_dispatcher(bot, storage=storage)
+    Bot.set_current(dp.bot)
+    Dispatcher.set_current(dp)
     await init_bot(bot, dp)
 
 
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
-    Dispatcher.set_current(dp)
-    Bot.set_current(bot)
+    # Dispatcher.set_current(dp)
+    # Bot.set_current(bot)
+    dp = Dispatcher.get_current()
     results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
@@ -91,11 +95,6 @@ async def on_shutdown():
 
 
 if __name__ == "__main__":
-    bot = make_bot()
-    storage = make_storage()
-    dp = make_dispatcher(bot, storage=storage)
-    Bot.set_current(dp.bot)
-    Dispatcher.set_current(dp)
     uvicorn.run(
         app,
         host=WEBHOOK_SETTINGS.HOST,
