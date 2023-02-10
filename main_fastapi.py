@@ -16,6 +16,11 @@ from cost_my_chemo_bot.db import DB
 logger = getLogger(__name__)
 app = FastAPI()
 security = HTTPBasic()
+bot = make_bot()
+storage = make_storage()
+dp = make_dispatcher(bot, storage=storage)
+Bot.set_current(dp.bot)
+Dispatcher.set_current(dp)
 
 
 async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
@@ -91,13 +96,9 @@ async def on_shutdown():
 
 
 if __name__ == "__main__":
-    bot = make_bot()
-    storage = make_storage()
-    dp = make_dispatcher(bot, storage=storage)
-    Bot.set_current(dp.bot)
-    Dispatcher.set_current(dp)
     uvicorn.run(
-        app,
+        "main_fastapi:app",
         host=WEBHOOK_SETTINGS.HOST,
         port=WEBHOOK_SETTINGS.PORT,
+        reload=WEBHOOK_SETTINGS.RELOAD,
     )

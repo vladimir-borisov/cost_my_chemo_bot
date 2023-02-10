@@ -522,6 +522,8 @@ def make_storage() -> JSONStorage | GcloudStorage | RedisStorage2:
                 state_ttl=REDIS_SETTINGS.STATE_TTL,
                 data_ttl=REDIS_SETTINGS.DATA_TTL,
                 bucket_ttl=REDIS_SETTINGS.BUCKET_TTL,
+                socket_keepalive=True,
+                health_check_interval=10,
             )
         case _:
             raise ValueError(f"Bullshit StorageType: {SETTINGS.STORAGE_TYPE}")
