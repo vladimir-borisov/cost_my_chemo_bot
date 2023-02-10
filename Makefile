@@ -27,4 +27,4 @@ serve_aiogram: ## Serve aiogram bot locally
 	python main_aiogram.py
 
 serve_fastapi: ## Serve fastapi bot locally
-	python main_fastapi.py
+	RELOAD=true python main_fastapi.py
