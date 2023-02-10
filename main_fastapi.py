@@ -1,4 +1,3 @@
-import functools
 import json
 import secrets
 
@@ -41,28 +40,22 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
     return credentials.username
 
 
-@functools.lru_cache(maxsize=None)
-def get_dispatcher() -> Dispatcher:
+@app.on_event("startup")
+async def on_startup():
     bot = make_bot()
     storage = make_storage()
     dp = make_dispatcher(bot, storage=storage)
-    return dp
-
-
-@app.on_event("startup")
-async def on_startup():
-    dp = get_dispatcher()
     Bot.set_current(dp.bot)
     Dispatcher.set_current(dp)
-    await init_bot(dp.bot, dp)
+    await init_bot(bot, dp)
 
 
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
-    dp = get_dispatcher()
-    Dispatcher.set_current(dp)
-    Bot.set_current(dp.bot)
+    # Dispatcher.set_current(dp)
+    # Bot.set_current(bot)
+    dp = Dispatcher.get_current()
     results = await dp.process_update(telegram_update)
     results = [json.loads(r.get_web_response().body) for r in results]
     logger.info(f"results={results}")
@@ -103,8 +96,7 @@ async def on_shutdown():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main_fastapi:app",
+        app,
         host=WEBHOOK_SETTINGS.HOST,
         port=WEBHOOK_SETTINGS.PORT,
-        reload=WEBHOOK_SETTINGS.RELOAD,
     )

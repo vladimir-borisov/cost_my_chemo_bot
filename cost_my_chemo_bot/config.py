@@ -43,7 +43,6 @@ class WebhookSettings(BaseSettings):
     # webserver settings
     HOST: str = "0.0.0.0"  # or ip
     PORT: int = 8080
-    RELOAD: bool = False
 
     @property
     def webhook_url(self) -> str:
