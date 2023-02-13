@@ -88,6 +88,22 @@ async def reload_db(credentials: HTTPBasicCredentials = Depends(check_creds)):
     return {"ok": True}
 
 
+@app.get("/telegram/webhook/")
+async def get_telegram_webhook(
+    credentials: HTTPBasicCredentials = Depends(check_creds),
+):
+    info = await bot.get_webhook_info()
+    return info.to_python()
+
+
+@app.post("/telegram/webhook/")
+async def set_telegram_webhook(
+    url: str, credentials: HTTPBasicCredentials = Depends(check_creds)
+):
+    result = await bot.set_webhook(url)
+    return {"ok": result}
+
+
 @app.on_event("shutdown")
 async def on_shutdown():
     bot = Bot.get_current()
