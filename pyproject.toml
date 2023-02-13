@@ -22,6 +22,7 @@ gcloud-aio-storage = "^8.0.0"
 logfmt-logger = "^0.1.2"
 fastapi = {version = "^0.91.0", extras = ["all"]}
 phonenumbers = "^8.13.6"
+redis = "^4.5.1"
 
 
 [tool.poetry.group.dev.dependencies]
