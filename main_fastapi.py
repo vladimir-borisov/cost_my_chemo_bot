@@ -37,6 +37,7 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
         current_password_bytes, correct_password_bytes
     )
     if not (is_correct_username and is_correct_password):
+        print(f"reject user {credentials.username} with pass {credentials.password}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

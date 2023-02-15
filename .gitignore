@@ -8,3 +8,4 @@ cloud.env
 cloud_env.yaml
 .deta/
 .idea
+.terraform/
