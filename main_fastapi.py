@@ -37,6 +37,7 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
         current_password_bytes, correct_password_bytes
     )
     if not (is_correct_username and is_correct_password):
+        print(f"reject user {credentials.username} with pass {credentials.password}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -86,6 +87,22 @@ async def get_db_categories(credentials: HTTPBasicCredentials = Depends(check_cr
 async def reload_db(credentials: HTTPBasicCredentials = Depends(check_creds)):
     await DB().reload_db()
     return {"ok": True}
+
+
+@app.get("/telegram/webhook/")
+async def get_telegram_webhook(
+    credentials: HTTPBasicCredentials = Depends(check_creds),
+):
+    info = await bot.get_webhook_info()
+    return info.to_python()
+
+
+@app.post("/telegram/webhook/")
+async def set_telegram_webhook(
+    url: str, credentials: HTTPBasicCredentials = Depends(check_creds)
+):
+    result = await bot.set_webhook(url)
+    return {"ok": result}
 
 
 @app.on_event("shutdown")
