@@ -4,7 +4,7 @@ import secrets
 import uvicorn
 from aiogram import Bot, Dispatcher, types
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBasic, HTTPBasicCredentials, APIKeyHeader
 from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
@@ -15,7 +15,9 @@ from cost_my_chemo_bot.db import DB
 
 logger = getLogger(__name__)
 app = FastAPI()
-security = HTTPBasic()
+security = APIKeyHeader(
+    name="x-api-key", description="Use 1C api user and password in form: user:password"
+)
 bot = make_bot()
 storage = make_storage()
 dp = make_dispatcher(bot, storage=storage)
@@ -23,13 +25,14 @@ Bot.set_current(dp.bot)
 Dispatcher.set_current(dp)
 
 
-async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
-    current_username_bytes = credentials.username.encode("utf8")
+async def check_creds(credentials: str = Depends(security)):
+    username, password = credentials.split(":", maxsplit=1)
+    current_username_bytes = username.encode("utf8")
     correct_username_bytes = SETTINGS.ONCO_MEDCONSULT_API_LOGIN.encode("utf8")
     is_correct_username = secrets.compare_digest(
         current_username_bytes, correct_username_bytes
     )
-    current_password_bytes = credentials.password.encode("utf8")
+    current_password_bytes = password.encode("utf8")
     correct_password_bytes = (
         SETTINGS.ONCO_MEDCONSULT_API_PASSWORD.get_secret_value().encode("utf8")
     )
@@ -37,13 +40,13 @@ async def check_creds(credentials: HTTPBasicCredentials = Depends(security)):
         current_password_bytes, correct_password_bytes
     )
     if not (is_correct_username and is_correct_password):
-        logger.info(f"reject user {credentials.username} with pass {credentials.password}")
+        logger.info(f"reject user {username} with pass {password}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Basic"},
         )
-    return credentials.username
+    return username
 
 
 @app.on_event("startup")
