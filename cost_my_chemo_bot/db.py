@@ -157,6 +157,7 @@ class DB:
     async def find_courses(
         self, category_id: str, nosology_id: str | None
     ) -> list[Course]:
+        await self.reload_db()
         if nosology_id is None:
             return [
                 course for course in self.courses if course.categoryid == category_id
@@ -200,6 +201,8 @@ class DB:
         raise CategoryNotFound(f"no such category: {category_id}")
 
     async def find_nosology_by_id(self, nosology_id: str) -> Nosology:
+        await self.reload_db()
+
         for nosology in self.nosologies:
             if nosology.nosologyid != nosology_id:
                 continue

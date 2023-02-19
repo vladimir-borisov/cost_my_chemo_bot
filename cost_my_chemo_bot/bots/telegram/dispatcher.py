@@ -61,6 +61,7 @@ async def send_weight_message(message: types.Message) -> types.Message | SendMes
 
 async def send_category_message(message: types.Message) -> types.Message:
     bot = Bot.get_current()
+    await database.reload_db()
 
     buttons = []
     for category in sorted(database.categories, key=lambda item: item.categoryName):

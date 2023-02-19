@@ -4,7 +4,7 @@ import secrets
 import uvicorn
 from aiogram import Bot, Dispatcher, types
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials, APIKeyHeader
+from fastapi.security import HTTPBasicCredentials, APIKeyHeader
 from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
