@@ -22,16 +22,36 @@ def make_dispatcher(bot: Bot, storage: BaseStorage) -> Dispatcher:
 
 
 async def send_welcome_message(message: types.Message) -> types.Message | SendMessage:
+
     bot = Bot.get_current()
 
     text = messages.WELCOME
 
     keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(Buttons.WELCOME_START.value)
+
+    return await send_message(
+        bot,
+        chat_id=message.chat.id,
+        parse_mode=types.ParseMode.MARKDOWN,
+        text=text,
+        reply_markup=keyboard,
+    )
+
+async def send_start_message(message: types.Message) -> types.Message | SendMessage:
+
+    bot = Bot.get_current()
+
+    text = messages.START
+
+    keyboard = types.InlineKeyboardMarkup()
     keyboard.add(Buttons.YES.value)
+
     return await send_message(
         bot,
         chat_id=message.chat.id,
         text=text,
+        parse_mode=types.ParseMode.MARKDOWN,
         reply_markup=keyboard,
     )
 
@@ -221,6 +241,8 @@ async def send_contacts_input_message(
         course = await database.find_course_by_id(course_id=state_data.course_id)
         course_price = course.price(bsa=state_data.bsa)
         course_price = f"{course_price:.2f} {messages.CURRENCY}"
+
+    await state.update_data(course_price=str(course_price))
 
     html_decoration = HtmlDecoration()
     return await send_message(

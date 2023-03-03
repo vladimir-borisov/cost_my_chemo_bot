@@ -13,10 +13,12 @@ logger = getLogger(__name__, level=SETTINGS.LOG_LEVEL)
 async def back_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
         message = callback_or_message
+
     current_state = await state.get_state()
 
     logger.debug("back from state: %s", current_state)
@@ -29,9 +31,10 @@ async def back_handler(
     state_data = await parse_state(state=state)
     logger.debug("state data: %s", state_data)
     match current_state:
-        case Form.initial.state:
-            await state.update_data(initial=None)
+        case Form.welcome.state:
             return await dispatcher.send_welcome_message(message=message)
+        case Form.start.state:
+            return await dispatcher.send_start_message(message=message)
         case Form.height.state:
             await state.update_data(height=None)
             return await dispatcher.send_height_message(message=message)

@@ -11,9 +11,12 @@ logger = getLogger(__name__)
 
 
 async def welcome_handler(
-    callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
+    callback_or_message: types.CallbackQuery | types.Message,
+    state: FSMContext
 ) -> types.Message | SendMessage:
+
     dp = Dispatcher.get_current()
+
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
@@ -30,21 +33,20 @@ async def welcome_handler(
         logger.info("Cancelling state %r", current_state)
         await state.finish()
 
-    await state.update_data(initial=True)
-    await state.set_state(Form.initial)
     return await dispatcher.send_welcome_message(message=message)
 
 
 async def process_initial_step(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
         message = callback_or_message
 
-    await state.set_state(Form.height)
-    return await dispatcher.send_height_message(message=message)
+    await state.set_state(Form.start)
+    return await dispatcher.send_start_message(message=message)
 
 
 def init_welcome_handlers(dp: Dispatcher):
@@ -66,8 +68,12 @@ def init_welcome_handlers(dp: Dispatcher):
         state="*",
     )
     dp.register_callback_query_handler(
-        welcome_handler, filters.welcome_callback, state="*"
+        welcome_handler,
+        filters.welcome_callback,
+        state="*"
     )
     dp.register_callback_query_handler(
-        process_initial_step, filters.initial_step_confirmed, state=Form.initial
+        process_initial_step,
+        filters.welcome_step_confirmed,
+        state="*"
     )

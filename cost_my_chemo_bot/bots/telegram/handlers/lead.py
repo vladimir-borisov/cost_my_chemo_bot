@@ -23,7 +23,8 @@ async def save_lead(message: types.Message, state: FSMContext):
         "FIELDS[PHONE][0][VALUE]": state_data.phone_number,
         "FIELDS[PHONE][0][VALUE_TYPE]": "WORK",
         "FIELDS[COMMENTS]": f"""
-                                 Курс: {state_data.course_name} | Вес: {state_data.weight} | Рост: {state_data.height} 
+                                 Курс: {state_data.course_name} | Вес: {state_data.weight} | Рост: {state_data.height} |
+                                 Стоимость курса: {state_data.course_price} 
                              """,
     }
     logger.info("save lead: %s", params)
@@ -127,40 +128,22 @@ async def process_skip(
 
 
 def init_lead_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(
-        process_contacts_input, filters.contacts_input, state=Form.contacts_input
-    )
-    dp.register_message_handler(
-        process_first_name, filters.first_name_valid, state=Form.first_name
-    )
-    dp.register_message_handler(
-        process_last_name, filters.last_name_valid, state=Form.last_name
-    )
+
+    dp.register_callback_query_handler(process_contacts_input, filters.contacts_input, state=Form.contacts_input)
+
+    dp.register_message_handler(process_first_name, filters.first_name_valid, state=Form.first_name)
+    dp.register_message_handler(process_last_name, filters.last_name_valid, state=Form.last_name)
+
     dp.register_message_handler(process_email, filters.email_valid, state=Form.email)
-    dp.register_message_handler(
-        process_email_invalid, filters.email_invalid, state=Form.email
-    )
-    dp.register_message_handler(
-        process_phone_number, filters.phone_number_valid, state=Form.phone_number
-    )
-    dp.register_message_handler(
-        process_phone_number_invalid,
-        filters.phone_number_invalid,
-        state=Form.phone_number,
-    )
+    dp.register_message_handler(process_email_invalid, filters.email_invalid, state=Form.email)
 
-    dp.register_callback_query_handler(
-        process_lead_confirmation, filters.lead_confirmed, state=Form.lead_confirmation
-    )
-    dp.register_callback_query_handler(
-        process_lead_reenter, filters.lead_reenter, state=Form.lead_confirmation
-    )
+    dp.register_message_handler(process_phone_number, filters.phone_number_valid, state=Form.phone_number)
+    dp.register_message_handler(process_phone_number_invalid, filters.phone_number_invalid, state=Form.phone_number)
 
-    dp.register_callback_query_handler(
-        process_skip, filters.skip, state=Form.first_name
-    )
+    dp.register_callback_query_handler(process_lead_confirmation, filters.lead_confirmed, state=Form.lead_confirmation)
+    dp.register_callback_query_handler(process_lead_reenter, filters.lead_reenter, state=Form.lead_confirmation)
+
+    dp.register_callback_query_handler(process_skip, filters.skip, state=Form.first_name)
     dp.register_callback_query_handler(process_skip, filters.skip, state=Form.last_name)
     dp.register_callback_query_handler(process_skip, filters.skip, state=Form.email)
-    dp.register_callback_query_handler(
-        process_skip, filters.skip, state=Form.phone_number
-    )
+    dp.register_callback_query_handler(process_skip, filters.skip, state=Form.phone_number)

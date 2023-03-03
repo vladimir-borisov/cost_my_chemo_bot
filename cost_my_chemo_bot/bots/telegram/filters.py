@@ -18,40 +18,85 @@ welcome_message_text = Text(equals=["start", "menu"], ignore_case=True)
 back_valid = Text(equals="back", ignore_case=True)
 
 
-async def initial_step_confirmed(callback: types.CallbackQuery) -> bool:
+async def welcome_step_confirmed(callback: types.CallbackQuery) -> bool:
+    if callback.data == Buttons.WELCOME_START.value.callback_data:
+        return True
+
+    return False
+
+async def start_step_confirmed(callback: types.CallbackQuery) -> bool:
     if callback.data == Buttons.YES.value.callback_data:
         return True
 
     return False
 
-
 async def height_valid(message: types.Message) -> bool:
+    """
+        Check if user correctly enter message with height information
+
+        Input:
+            message: aiogram message object with information about sent message in telegram
+        Output:
+            False - height is invalid number
+            True - height is valid number
+    """
+
     if message.is_command():
         return False
 
-    return message.text.isdigit()
+    try:
+        int(message.text)
+        return True
+    except:
+        return False
 
 
 async def height_invalid(message: types.Message) -> bool:
-    if message.is_command():
-        return False
+    """
+        Check if user correctly enter message with height information
 
-    return not message.text.isdigit()
+        Input:
+            message: aiogram message object with information about sent message in telegram
+        Output:
+            False - height is valid number
+            True - height is invalid number
+    """
+
+    return not (await height_valid(message=message))
 
 
 async def weight_valid(message: types.Message) -> bool:
+    """
+        Check if user correctly enter message with weight information
+
+        Input:
+            message: aiogram message object with information about sent message in telegram
+        Output:
+            False - weight is invalid number
+            True - weight is valid number
+    """
+
     if message.is_command():
         return False
 
-    return message.text.isdigit()
+    try:
+        int(message.text)
+        return True
+    except:
+        return False
 
 
 async def weight_invalid(message: types.Message) -> bool:
-    if message.is_command():
-        return False
+    """
+        Check if user correctly enter message with weight information
 
-    return not message.text.isdigit()
-
+        Input:
+            message: aiogram message object with information about sent message in telegram
+        Output:
+            False - weight is valid number
+            True - weight is invalid number
+    """
+    return not (await weight_valid(message=message))
 
 async def category_valid(callback: types.CallbackQuery) -> bool:
     return bool(
@@ -178,6 +223,7 @@ async def email_invalid(message: types.Message) -> bool:
 
 
 async def phone_number_valid(message: types.Message) -> bool:
+
     if message.is_command():
         return False
 
@@ -185,6 +231,7 @@ async def phone_number_valid(message: types.Message) -> bool:
         parsed_number = phonenumbers.parse(message.text, None)
     except phonenumbers.NumberParseException:
         return False
+
     return phonenumbers.is_valid_number(parsed_number)
 
 

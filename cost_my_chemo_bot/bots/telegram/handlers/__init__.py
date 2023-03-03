@@ -16,17 +16,19 @@ from .lead import (
 from .nosology import init_nosology_handlers, process_nosology, process_nosology_invalid
 from .weight import init_weight_handlers, process_weight, process_weight_invalid
 from .welcome import init_welcome_handlers, welcome_handler
-
+from .start import  init_start_handlers, start_handler, start_yes_click
 
 def init_handlers(dp: Dispatcher):
+
+    init_welcome_handlers(dp)
+    init_start_handlers(dp)
+    init_height_handlers(dp)
     init_back_handlers(dp)
     init_cancel_handlers(dp)
     init_category_handlers(dp)
-    init_height_handlers(dp)
     init_nosology_handlers(dp)
     init_weight_handlers(dp)
     init_lead_handlers(dp)
-    init_welcome_handlers(dp)
     init_course_handlers(dp)
 
 
@@ -50,4 +52,6 @@ __all__ = (
     "process_weight",
     "process_weight_invalid",
     "welcome_handler",
+    "start_yes_click",
+    "start_handler"
 )

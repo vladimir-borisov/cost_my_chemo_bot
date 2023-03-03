@@ -13,6 +13,7 @@ class StateData(BaseModel):
     course_id: str | None = None
     is_custom_course: bool | None = None
     course_name: str | None = None
+    course_price: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr | None = None
@@ -30,7 +31,8 @@ class StateData(BaseModel):
 
 # States
 class Form(StatesGroup):
-    initial = State()
+    welcome = State()
+    start = State()
     height = State()
     weight = State()
     category = State()

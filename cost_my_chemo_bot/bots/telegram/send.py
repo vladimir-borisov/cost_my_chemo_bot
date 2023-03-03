@@ -20,6 +20,7 @@ async def send_message(
     | str
     | None = None,
 ) -> types.Message | SendMessage:
+
     if SETTINGS.BOT_MODE is BotMode.WEBHOOK:
         return SendMessage(
             chat_id=chat_id,

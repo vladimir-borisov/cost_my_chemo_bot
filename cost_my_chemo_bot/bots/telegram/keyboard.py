@@ -8,6 +8,7 @@ logger = getLogger(__name__)
 
 
 class Buttons(enum.Enum):
+    WELCOME_START = types.InlineKeyboardButton(text="Начать", callback_data="welcome_start")
     YES = types.InlineKeyboardButton(text="✅ Да", callback_data="yes")
     NEED_CORRECTION = types.InlineKeyboardButton(
         text="✏ Нет, нужно исправить", callback_data="need_correction"
@@ -24,13 +25,14 @@ class Buttons(enum.Enum):
 
 
 def get_keyboard_markup(
-    buttons: typing.Iterable[
-        str | types.InlineKeyboardButton | types.KeyboardButton
-    ] = tuple(),
+    buttons: typing.Iterable[str | types.InlineKeyboardButton | types.KeyboardButton] = tuple(),
     inline: bool = True,
 ) -> types.ReplyKeyboardMarkup | types.InlineKeyboardMarkup:
+
     if inline:
+
         keyboard_markup = types.InlineKeyboardMarkup()
+
         for button in buttons:
             if isinstance(button, str):
                 keyboard_markup.add(
