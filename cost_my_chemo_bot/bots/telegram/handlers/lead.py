@@ -7,6 +7,8 @@ from logfmt_logger import getLogger
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.config import SETTINGS
+from cost_my_chemo_bot.action_logger.main import action_logger
+
 
 logger = getLogger(__name__)
 
@@ -44,6 +46,12 @@ async def process_contacts_input(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
+
+    await action_logger.send_message(message="Пользователь нажал кнопку 'Ввести контакты'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
+
     await state.update_data(contacts_input=callback.data)
     await state.set_state(Form.first_name)
     return await dispatcher.send_first_name_message(message=message)
@@ -52,6 +60,12 @@ async def process_contacts_input(
 async def process_first_name(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    if message.text is not None:
+        await action_logger.send_message(message=f"Пользователь ввел имя: {message.text}",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(first_name=message.text)
     await state.set_state(Form.last_name)
     return await dispatcher.send_last_name_message(message=message)
@@ -60,6 +74,12 @@ async def process_first_name(
 async def process_last_name(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    if message.text is not None:
+        await action_logger.send_message(message=f"Пользователь ввел фамилию: {message.text}",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(last_name=message.text)
     await state.set_state(Form.email)
     return await dispatcher.send_email_message(message=message)
@@ -68,6 +88,12 @@ async def process_last_name(
 async def process_email(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    if message.text is not None:
+        await action_logger.send_message(message=f"Пользователь ввел почту: {message.text}",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(email=message.text)
     await state.set_state(Form.phone_number)
     return await dispatcher.send_phone_number_message(message=message)
@@ -76,12 +102,23 @@ async def process_email(
 async def process_email_invalid(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Пользователь неправильно ввел почту: {message.text}",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     return await dispatcher.send_email_invalid_message(message=message)
 
 
 async def process_phone_number(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    if message.text is not None:
+        await action_logger.send_message(message=f"Пользователь ввел телефон: {message.text}",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(phone_number=message.text)
     await state.set_state(Form.lead_confirmation)
     return await dispatcher.send_lead_confirmation_message(message=message, state=state)
@@ -90,6 +127,11 @@ async def process_phone_number(
 async def process_phone_number_invalid(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Пользователь неправильно ввел телефон: {message.text}",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     return await dispatcher.send_phone_number_invalid_message(message=message)
 
 
@@ -97,6 +139,11 @@ async def process_lead_confirmation(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
     message = callback.message
+
+    await action_logger.send_message(message=f"Пользователь подтвердил отправку контактных данных",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await save_lead(message=message, state=state)
     await state.finish()
     return await dispatcher.send_final_message(message=message)
@@ -104,6 +151,11 @@ async def process_lead_confirmation(
 
 async def process_lead_reenter(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
+
+    await action_logger.send_message(message=f"Пользователь решил исправить контактные данные",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.set_state(Form.first_name)
     return await dispatcher.send_first_name_message(message=message)
 
@@ -111,18 +163,42 @@ async def process_lead_reenter(callback: types.CallbackQuery, state: FSMContext)
 async def process_skip(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
+
     message = callback.message
     current_state = await state.get_state()
+
     if current_state == Form.first_name.state:
+
+        await action_logger.send_message(message=f"Пользователь пропустил ввод имени",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
         message.text = None
         return await process_first_name(message=message, state=state)
+
     if current_state == Form.last_name.state:
+
+        await action_logger.send_message(message=f"Пользователь пропустил ввод фамилии",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
         message.text = None
         return await process_last_name(message=message, state=state)
     if current_state == Form.email.state:
+
+        await action_logger.send_message(message=f"Пользователь пропустил ввод почты",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
         message.text = None
         return await process_email(message=message, state=state)
+
     if current_state == Form.phone_number.state:
+
+        await action_logger.send_message(message=f"Пользователь пропустил ввод телефона",
+                                         user_id=message.chat.id,
+                                         username=f"{message.chat.first_name} {message.chat.last_name}")
+
         message.text = None
         return await process_phone_number(message=message, state=state)
 

@@ -9,7 +9,9 @@ class StateData(BaseModel):
     height: int | None = None
     weight: int | None = None
     category_id: str | None = None
+    category_name: str | None = None
     nosology_id: str | None = None
+    nosology_name: str | None = None
     course_id: str | None = None
     is_custom_course: bool | None = None
     course_name: str | None = None

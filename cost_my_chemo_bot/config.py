@@ -74,6 +74,21 @@ class RedisSettings(BaseSettings):
         env_file = ".env"
 
 
+class ActionLoggerSettings(BaseSettings):
+
+    ACTION_LOGGER_BASE_URL: str = "https://logsene-receiver.eu.sematext.com"
+    ACTION_LOGGER_TOKEN: str = ""
+    ACTION_LOGGER_NAME: str = "CHEMO_BOT"  # by this name we can determine where log came from
+
+    @property
+    def get_api_url(self) -> str:
+        """ Get correct url for api call"""
+        return f"{self.ACTION_LOGGER_BASE_URL}/{self.ACTION_LOGGER_TOKEN}/{self.ACTION_LOGGER_NAME}"
+
+    class Config:
+        env_file = ".env"
+
+
 SETTINGS = Settings()
 WEBHOOK_SETTINGS = None
 if SETTINGS.BOT_MODE is BotMode.WEBHOOK:
@@ -86,3 +101,5 @@ if SETTINGS.STORAGE_TYPE is StorageType.JSON:
 REDIS_SETTINGS = None
 if SETTINGS.STORAGE_TYPE is StorageType.REDIS:
     REDIS_SETTINGS = RedisSettings()
+
+ACTION_LOGGER_SETTINGS = ActionLoggerSettings()

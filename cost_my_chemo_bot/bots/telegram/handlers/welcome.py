@@ -6,6 +6,7 @@ from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form
+from cost_my_chemo_bot.action_logger.main import action_logger
 
 logger = getLogger(__name__)
 
@@ -19,6 +20,12 @@ async def welcome_handler(
 
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
+
+        if callback_or_message.data == 'menu':
+            await action_logger.send_message(message="Пользователь нажал 'В начало'",
+                                             user_id=message.chat.id,
+                                             username=f"{message.chat.first_name} {message.chat.last_name}")
+
     else:
         message = callback_or_message
 
@@ -45,7 +52,14 @@ async def process_initial_step(
     else:
         message = callback_or_message
 
+    await action_logger.send_message(message="Пользователь нажал 'Начать'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
+    # activate next state - Start
     await state.set_state(Form.start)
+
+    # send message from the next state
     return await dispatcher.send_start_message(message=message)
 
 

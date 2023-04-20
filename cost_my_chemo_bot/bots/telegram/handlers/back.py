@@ -6,6 +6,7 @@ from logfmt_logger import getLogger
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.config import SETTINGS
+from cost_my_chemo_bot.action_logger.main import action_logger
 
 logger = getLogger(__name__, level=SETTINGS.LOG_LEVEL)
 
@@ -18,6 +19,10 @@ async def back_handler(
         message = callback_or_message.message
     else:
         message = callback_or_message
+
+    await action_logger.send_message(message=f"Пользователь нажал кнопку 'Назад'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
 
     current_state = await state.get_state()
 

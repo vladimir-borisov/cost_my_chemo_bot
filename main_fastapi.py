@@ -11,9 +11,13 @@ from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
 from cost_my_chemo_bot.bots.telegram.dispatcher import make_dispatcher
 from cost_my_chemo_bot.bots.telegram.storage import make_storage
 from cost_my_chemo_bot.config import SETTINGS, WEBHOOK_SETTINGS
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from cost_my_chemo_bot.db import DB
 
+from cost_my_chemo_bot.action_logger.main import action_logger
+
 logger = getLogger(__name__)
+
 app = FastAPI()
 security = APIKeyHeader(
     name="x-api-key", description="Use 1C api user and password in form: user:password"
@@ -21,6 +25,8 @@ security = APIKeyHeader(
 bot = make_bot()
 storage = make_storage()
 dp = make_dispatcher(bot, storage=storage)
+dp.middleware.setup(LoggingMiddleware())
+
 Bot.set_current(dp.bot)
 Dispatcher.set_current(dp)
 
@@ -58,6 +64,7 @@ async def on_startup():
 
 @app.post(WEBHOOK_SETTINGS.WEBHOOK_PATH)
 async def bot_webhook(update: dict):
+
     telegram_update = types.Update(**update)
     Dispatcher.set_current(dp)
     Bot.set_current(bot)
@@ -112,6 +119,7 @@ async def set_telegram_webhook(
 async def on_shutdown():
     bot = Bot.get_current()
     dp = Dispatcher.get_current()
+    await action_logger.close()
     await close_bot(bot=bot, dp=dp)
 
 

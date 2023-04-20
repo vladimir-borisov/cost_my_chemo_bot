@@ -24,11 +24,13 @@ async def welcome_step_confirmed(callback: types.CallbackQuery) -> bool:
 
     return False
 
+
 async def start_step_confirmed(callback: types.CallbackQuery) -> bool:
     if callback.data == Buttons.YES.value.callback_data:
         return True
 
     return False
+
 
 async def height_valid(message: types.Message) -> bool:
     """
@@ -97,6 +99,7 @@ async def weight_invalid(message: types.Message) -> bool:
             True - weight is invalid number
     """
     return not (await weight_valid(message=message))
+
 
 async def category_valid(callback: types.CallbackQuery) -> bool:
     return bool(

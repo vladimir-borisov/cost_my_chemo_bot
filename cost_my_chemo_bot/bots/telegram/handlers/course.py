@@ -8,6 +8,7 @@ from cost_my_chemo_bot.bots.telegram.keyboard import Buttons, get_keyboard_marku
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.db import DB
+from cost_my_chemo_bot.action_logger.main import action_logger
 
 logger = getLogger(__name__)
 database = DB()
@@ -16,12 +17,22 @@ database = DB()
 async def process_course(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
+
     message = callback.message
-    course = await database.find_course_by_id(course_id=callback.data)
+
+    course_object = await database.find_course_by_id(course_id=callback.data)
+    course_name = course_object.Course
+
+    await action_logger.send_message(message=f"Пользователь выбрал курс: '{course_name}'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(
-        course_id=course.Courseid,
-        course_name=course.Course,
+        course_id=course_object.Courseid,
+        course_name=course_name,
     )
+
+
     await state.set_state(Form.data_confirmation)
     return await dispatcher.send_data_confirmation_message(message=message, state=state)
 
@@ -56,6 +67,11 @@ async def process_enter_custom_course(callback: types.CallbackQuery, state: FSMC
 async def process_custom_course(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Пользователь ввел собственный курс: '{message.text}'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(course_name=message.text)
     await state.set_state(Form.data_confirmation)
     return await dispatcher.send_data_confirmation_message(message=message, state=state)
@@ -64,7 +80,13 @@ async def process_custom_course(
 async def process_data_confirmation(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
+
     message = callback.message
+
+    await action_logger.send_message(message=f"Показываем пользователю все выбранные и введенные данные",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.update_data(data_confirmation=message.text)
     await state.set_state(Form.contacts_input)
     return await dispatcher.send_contacts_input_message(message=message, state=state)
@@ -72,6 +94,11 @@ async def process_data_confirmation(
 
 async def process_data_reenter(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
+
+    await action_logger.send_message(message=f"Пользователь решил исправить введенные данные",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     await state.set_state(Form.height)
     return await dispatcher.send_height_message(message=message)
 

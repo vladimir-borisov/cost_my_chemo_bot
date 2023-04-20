@@ -8,6 +8,8 @@ from cost_my_chemo_bot.bots.telegram.keyboard import get_keyboard_markup
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import Form, parse_state
 from cost_my_chemo_bot.db import DB
+from cost_my_chemo_bot.action_logger.main import action_logger
+
 
 logger = getLogger(__name__)
 database = DB()
@@ -16,9 +18,19 @@ database = DB()
 async def process_category(
     callback: types.CallbackQuery, state: FSMContext
 ) -> types.Message | SendMessage:
+
     message = callback.message
-    await state.update_data(category_id=callback.data)
+
+    category_object = await database.find_category_by_id(category_id=callback.data)
+    category_name = category_object.categoryName
+
+    await action_logger.send_message(message=f"Пользователь выбрал категорию: '{category_name}'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
+    await state.update_data(category_id=callback.data, category_name=category_name)
     state_data = await parse_state(state=state)
+
     if state_data.is_accompanying_therapy:
         await state.set_state(Form.course)
         return await dispatcher.send_course_message(
@@ -34,6 +46,7 @@ async def process_category(
 async def process_category_invalid(
     callback: types.CallbackQuery,
 ) -> types.Message | SendMessage:
+
     bot = Bot.get_current()
 
     return await send_message(

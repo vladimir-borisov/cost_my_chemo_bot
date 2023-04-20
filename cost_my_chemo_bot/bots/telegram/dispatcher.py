@@ -12,6 +12,8 @@ from cost_my_chemo_bot.bots.telegram.keyboard import Buttons, get_keyboard_marku
 from cost_my_chemo_bot.bots.telegram.send import send_message
 from cost_my_chemo_bot.bots.telegram.state import parse_state
 from cost_my_chemo_bot.db import DB, Course
+from cost_my_chemo_bot.action_logger.main import action_logger
+
 
 logger = getLogger(__name__)
 database = DB()
@@ -22,6 +24,10 @@ def make_dispatcher(bot: Bot, storage: BaseStorage) -> Dispatcher:
 
 
 async def send_welcome_message(message: types.Message) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Показываем приветственное сообщение",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
 
     bot = Bot.get_current()
 
@@ -40,6 +46,10 @@ async def send_welcome_message(message: types.Message) -> types.Message | SendMe
 
 async def send_start_message(message: types.Message) -> types.Message | SendMessage:
 
+    await action_logger.send_message(message="Показываем сообщение c описанием бота",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.START
@@ -57,6 +67,11 @@ async def send_start_message(message: types.Message) -> types.Message | SendMess
 
 
 async def send_height_message(message: types.Message) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Предлагаем ввести рост",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.HEIGHT_INPUT
@@ -69,6 +84,11 @@ async def send_height_message(message: types.Message) -> types.Message | SendMes
 
 
 async def send_weight_message(message: types.Message) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Предлагаем ввести вес",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     return await send_message(
@@ -80,6 +100,11 @@ async def send_weight_message(message: types.Message) -> types.Message | SendMes
 
 
 async def send_category_message(message: types.Message) -> types.Message:
+
+    await action_logger.send_message(message="Предлагаем выбрать категорию",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
     await database.reload_db()
 
@@ -104,6 +129,10 @@ async def send_nosology_message(
 ) -> types.Message | SendMessage:
     bot = Bot.get_current()
 
+    await action_logger.send_message(message="Предлагаем выбрать нозологию",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     buttons = []
     data = await parse_state(state=state)
     nosologies = await database.find_nosologies_by_category_id(
@@ -127,6 +156,11 @@ async def send_nosology_message(
 async def send_course_message(
     message: types.Message, category_id: str, nosology_id: str | None
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Предлагаем выбрать курс",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     recommended_courses: list[Course] = await database.find_courses(
@@ -158,6 +192,11 @@ async def send_course_message(
 async def send_custom_course_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Предлагаем ввести собственный курс",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     return await send_message(
@@ -171,6 +210,11 @@ async def send_custom_course_message(
 async def send_lead_message(
     message: types.Message, add_text: str | None = None
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Предлагаем ввести контактную информацию",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     if add_text is None:
@@ -191,6 +235,11 @@ async def send_lead_message(
 async def send_data_confirmation_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Спрашиваем правильность введенных данных (рост, вес, курс)",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     state_data = await parse_state(state=state)
@@ -225,6 +274,11 @@ async def send_data_confirmation_message(
 async def send_contacts_input_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message="Показываем сообщение со стоимостью выбранного курса",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     state_data = await parse_state(state=state)
@@ -266,10 +320,18 @@ async def send_contacts_input_message(
 async def send_first_name_message(
     message: types.Message, add_text: str | None = None
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Предлагаем ввести имя",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
+
     if add_text is None:
         add_text = ""
+
     text = md.text(add_text, md.text(messages.LEAD_FIRST_NAME), sep="\n")
+
     return await send_message(
         bot,
         chat_id=message.chat.id,
@@ -282,6 +344,11 @@ async def send_first_name_message(
 async def send_last_name_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Предлагаем ввести фамилию",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.LEAD_LAST_NAME
@@ -296,6 +363,11 @@ async def send_last_name_message(
 async def send_email_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Предлагаем ввести почту",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.LEAD_EMAIL
@@ -310,6 +382,11 @@ async def send_email_message(
 async def send_email_invalid_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Пользователь некорректно ввел почту: {message.text}",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.LEAD_EMAIL_WRONG
@@ -324,6 +401,11 @@ async def send_email_invalid_message(
 async def send_phone_number_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Предлагаем ввести номер телефона",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.LEAD_PHONE_NUMBER
@@ -338,6 +420,11 @@ async def send_phone_number_message(
 async def send_phone_number_invalid_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Пользователь некорректно ввел номер: {message.text}",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     text = messages.LEAD_PHONE_NUMBER_WRONG
@@ -352,6 +439,11 @@ async def send_phone_number_invalid_message(
 async def send_lead_confirmation_message(
     message: types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Показываем пользователю введенные им данные",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     state_data = await parse_state(state=state)
@@ -375,6 +467,11 @@ async def send_lead_confirmation_message(
 async def send_final_message(
     message: types.Message,
 ) -> types.Message | SendMessage:
+
+    await action_logger.send_message(message=f"Показываем пользователю финальное сообщение",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
+
     bot = Bot.get_current()
 
     return await send_message(

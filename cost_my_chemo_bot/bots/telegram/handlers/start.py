@@ -5,6 +5,8 @@ from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import dispatcher, filters
 from cost_my_chemo_bot.bots.telegram.state import Form
+from cost_my_chemo_bot.action_logger.main import action_logger
+
 
 logger = getLogger(__name__)
 
@@ -35,6 +37,10 @@ async def start_yes_click(
         message = callback_or_message.message
     else:
         message = callback_or_message
+
+    await action_logger.send_message(message="Пользователь нажал 'Да'",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
 
     await state.set_state(Form.height)
 

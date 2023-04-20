@@ -6,6 +6,7 @@ from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram import messages
 from cost_my_chemo_bot.bots.telegram.send import send_message
+from cost_my_chemo_bot.action_logger.main import action_logger
 
 logger = getLogger(__name__)
 
@@ -13,11 +14,17 @@ logger = getLogger(__name__)
 async def cancel_handler(
     callback_or_message: types.CallbackQuery | types.Message, state: FSMContext
 ) -> types.Message | SendMessage:
+
     bot = Bot.get_current()
+
     if isinstance(callback_or_message, types.CallbackQuery):
         message = callback_or_message.message
     else:
         message = callback_or_message
+
+    await action_logger.send_message(message=f"Пользователь ввел команду /stop",
+                                     user_id=message.chat.id,
+                                     username=f"{message.chat.first_name} {message.chat.last_name}")
 
     current_state = await state.get_state()
     logger.info("Cancelling state %r", current_state)
