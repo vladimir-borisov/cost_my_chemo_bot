@@ -29,6 +29,18 @@ async def welcome_handler(
     else:
         message = callback_or_message
 
+        # check if user came by ref link
+        if len(message.text.split(' ')) > 1:  # if more than 1 word like: /start sometext
+
+            message_parts = message.text.split(' ')
+
+            await action_logger.send_message(message=f"Пользователь перешел по ссылке {message_parts[1]}",
+                                             user_id=message.chat.id,
+                                             username=f"{message.chat.first_name} {message.chat.last_name}",
+                                             extra_parameters={"is_invitation": 1,
+                                                               "invite_link": message_parts[1]})
+
+
     if hasattr(dp.storage, "release_lock"):
         logger.info(
             "Releasing lock",

@@ -1,10 +1,11 @@
 import json
 import secrets
+import io
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import HTTPBasicCredentials, APIKeyHeader
+from fastapi.security import HTTPBasicCredentials, APIKeyHeader, HTTPBasic
 from logfmt_logger import getLogger
 
 from cost_my_chemo_bot.bots.telegram.bot import close_bot, init_bot, make_bot
@@ -22,6 +23,8 @@ app = FastAPI()
 security = APIKeyHeader(
     name="x-api-key", description="Use 1C api user and password in form: user:password"
 )
+security_basic = HTTPBasic()
+
 bot = make_bot()
 storage = make_storage()
 dp = make_dispatcher(bot, storage=storage)
@@ -53,6 +56,26 @@ async def check_creds(credentials: str = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
     return username
+
+async def check_creds_basic(credentials: HTTPBasicCredentials = Depends(security_basic)):
+
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = SETTINGS.ONCO_MEDCONSULT_API_LOGIN.encode()
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
+    )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = SETTINGS.ONCO_MEDCONSULT_API_PASSWORD.get_secret_value().encode()
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 
 @app.on_event("startup")
@@ -113,6 +136,16 @@ async def set_telegram_webhook(
 ):
     result = await bot.set_webhook(url)
     return {"ok": result}
+
+
+@app.get("/")
+async def save_logs():
+
+    df_logs = await action_logger.get_logs()
+
+    await action_logger.save_logs_bitrix(df=df_logs)
+
+    return {"ok": True}
 
 
 @app.on_event("shutdown")

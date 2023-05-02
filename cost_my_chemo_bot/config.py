@@ -20,8 +20,11 @@ class Settings(BaseSettings):
     ONCO_MEDCONSULT_API_LOGIN: str
     ONCO_MEDCONSULT_API_PASSWORD: SecretStr
 
-    BITRIX_URL: HttpUrl = "https://headache-hemonc.bitrix24.ru/rest/25"
-    BITRIX_TOKEN: SecretStr
+    BITRIX_LEAD_URL: HttpUrl = "https://headache-hemonc.bitrix24.ru/rest/25"
+    BITRIX_LEAD_TOKEN: SecretStr
+    BITRIX_DISK_URL: HttpUrl = ""
+    BITRIX_DISK_TOKEN: SecretStr
+    BITRIX_DISK_FOLDER_ID: int = 0
 
     TELEGRAM_BOT_TOKEN: str
     LOG_LEVEL: int = Field(logging.INFO)
@@ -78,12 +81,30 @@ class ActionLoggerSettings(BaseSettings):
 
     ACTION_LOGGER_BASE_URL: str = "https://logsene-receiver.eu.sematext.com"
     ACTION_LOGGER_TOKEN: str = ""
+    ACTION_LOGGER_API_KEY: str = ""
     ACTION_LOGGER_NAME: str = "CHEMO_BOT"  # by this name we can determine where log came from
 
+    # define period for log search
+    ACTION_LOGGER_SAVE_PERIOD_DAYS: int = 7
+    ACTION_LOGGER_SAVE_PERIOD_HOURS: int = 0
+    ACTION_LOGGER_SAVE_PERIOD_MINUTES: int = 0
+
     @property
-    def get_api_url(self) -> str:
-        """ Get correct url for api call"""
+    def upload_logs_url(self) -> str:
+        """ Get correct url for uploading logs"""
         return f"{self.ACTION_LOGGER_BASE_URL}/{self.ACTION_LOGGER_TOKEN}/{self.ACTION_LOGGER_NAME}"
+
+    @property
+    def get_logs_url(self) -> str:
+        """
+            Get correct url for getting logs
+
+            For detail information about getting logs check:
+
+            1. https://sematext.com/docs/logs/search-through-the-elasticsearch-api/
+            2. https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html
+        """
+        return f"{self.ACTION_LOGGER_BASE_URL}/{self.ACTION_LOGGER_TOKEN}/_search?size=10000"
 
     class Config:
         env_file = ".env"
