@@ -2,6 +2,7 @@ import datetime
 import json
 import secrets
 import io
+import pytz
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
@@ -151,8 +152,9 @@ async def save_logs():
 
 
 @app.get("/server_time")
-async def save_logs():
-    return {'server_time': datetime.datetime.now()}
+async def get_server_time():
+    return {'server_time': datetime.datetime.now(),
+            'server_time_moscow': datetime.datetime.now(tz=pytz.timezone('Europe/Moscow'))}
 
 
 @app.on_event("shutdown")
