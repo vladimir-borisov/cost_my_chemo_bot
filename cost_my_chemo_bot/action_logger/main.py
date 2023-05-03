@@ -1,5 +1,5 @@
 import io
-
+import pytz
 import httpx
 import logging
 import pandas as pd
@@ -77,11 +77,14 @@ class ActionLogger:
 
         df['user_id'] = df['user_id'].astype('Int64', errors='ignore')
 
-        left_time_border = datetime.datetime.now() - datetime.timedelta(days=ACTION_LOGGER_SETTINGS.ACTION_LOGGER_SAVE_PERIOD_DAYS,
-                                                                        hours=ACTION_LOGGER_SETTINGS.ACTION_LOGGER_SAVE_PERIOD_HOURS,
-                                                                        minutes=ACTION_LOGGER_SETTINGS.ACTION_LOGGER_SAVE_PERIOD_MINUTES)
+        # current time with aware about timezone
+        current_time = datetime.datetime.now(tz=pytz.timezone('Europe/Moscow'))
 
-        right_time_border = datetime.datetime.now()
+        left_time_border = current_time - datetime.timedelta(days=ACTION_LOGGER_SETTINGS.ACTION_LOGGER_SAVE_PERIOD_DAYS,
+                                                             hours=ACTION_LOGGER_SETTINGS.ACTION_LOGGER_SAVE_PERIOD_HOURS,
+                                                             minutes=ACTION_LOGGER_SETTINGS.ACTION_LOGGER_SAVE_PERIOD_MINUTES)
+
+        right_time_border = current_time
 
         # cut time and save only date
         left_time_border = left_time_border.date()
@@ -106,7 +109,7 @@ class ActionLogger:
 
         upload_url = response_json['result']['uploadUrl']
 
-        current_date = datetime.date.today()
+        current_date = datetime.datetime.now(tz=pytz.timezone('Europe/Moscow')).date()
 
         log_filename = f"{current_date}_logs.xlsx"
 
