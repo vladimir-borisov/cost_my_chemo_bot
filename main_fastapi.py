@@ -1,3 +1,4 @@
+import datetime
 import json
 import secrets
 import io
@@ -80,6 +81,7 @@ async def check_creds_basic(credentials: HTTPBasicCredentials = Depends(security
 
 @app.on_event("startup")
 async def on_startup():
+    logger.info(msg=f"START BOT")
     bot = Bot.get_current()
     dp = Dispatcher.get_current()
     await init_bot(bot, dp)
@@ -148,10 +150,16 @@ async def save_logs():
     return {"ok": True}
 
 
+@app.get("/server_time")
+async def save_logs():
+    return {'server_time': datetime.datetime.now()}
+
+
 @app.on_event("shutdown")
 async def on_shutdown():
     bot = Bot.get_current()
     dp = Dispatcher.get_current()
+    logger.info(msg=f"Shutdown bot")
     await action_logger.close()
     await close_bot(bot=bot, dp=dp)
 
