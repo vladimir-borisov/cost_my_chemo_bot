@@ -6,7 +6,7 @@ import pytz
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, Request
 from fastapi.security import HTTPBasicCredentials, APIKeyHeader, HTTPBasic
 from logfmt_logger import getLogger
 
@@ -141,13 +141,17 @@ async def set_telegram_webhook(
     return {"ok": result}
 
 
-@app.get("/")
-async def save_logs():
-
+@app.post("/")
+async def save_logs_post(request: Request):
     df_logs = await action_logger.get_logs()
-
     await action_logger.save_logs_bitrix(df=df_logs)
+    return {"ok": True}
 
+
+@app.get("/")
+async def save_logs_get(request: Request):
+    df_logs = await action_logger.get_logs()
+    await action_logger.save_logs_bitrix(df=df_logs)
     return {"ok": True}
 
 
