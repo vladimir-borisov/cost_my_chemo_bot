@@ -1,12 +1,12 @@
 import datetime
 import json
 import secrets
-import io
 import pytz
 
 import uvicorn
 from aiogram import Bot, Dispatcher, types
 from fastapi import Depends, FastAPI, HTTPException, status, Request
+from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPBasicCredentials, APIKeyHeader, HTTPBasic
 from logfmt_logger import getLogger
 
@@ -149,10 +149,25 @@ async def save_logs_post(request: Request):
 
 
 @app.get("/")
-async def save_logs_get(request: Request):
+async def save_logs_get(request: Request, response_class=HTMLResponse):
+
     df_logs = await action_logger.get_logs()
-    await action_logger.save_logs_bitrix(df=df_logs)
-    return {"ok": True}
+    filename = await action_logger.save_logs_bitrix(df=df_logs)
+
+    response_html = f"""
+    <html>
+        <head>
+            <title>Сохранение логов</title>
+        </head>
+        <body>
+            <h1>Логи выгружены</h1>
+            <h3>В папку с id: {SETTINGS.BITRIX_DISK_FOLDER_ID}</h3>
+            <h3>Название файла с логами: {filename}</h3>
+        </body>
+    </html>
+    """
+
+    return HTMLResponse(content=response_html, status_code=200)
 
 
 @app.get("/server_time")
