@@ -60,6 +60,21 @@ class Course(BaseModel):
 
         return v
 
+    @validator("fixPrice", pre=True)
+    def cast_fixprice(cls, v: typing.Any) -> bool:
+
+        if isinstance(v, str):
+
+            if 'нет' in v.lower():
+                return False
+            elif 'да' in v.lower():
+                return True
+            else:
+                raise ValueError(f"Unknown value for 'fixPrice' field = {v}")
+        else:
+            logger.error(msg=f"fixPrice field is not 'str'. It's: {type(v)}")
+            raise ValueError("Incorrect type for field 'fixPrice'")
+
     def price(self, bsa: float) -> decimal.Decimal:
         if self.fixPrice:
             return self.coefficient
